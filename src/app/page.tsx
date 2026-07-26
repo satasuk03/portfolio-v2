@@ -21,8 +21,9 @@
  *   nothing gated.
  */
 
-import { ActionLinks, Colophon, Topbar } from "@/components/actions";
+import { ActionLinks, Colophon } from "@/components/actions";
 import { Figure, SectionOpener } from "@/components/manual";
+import { SectionNav } from "@/components/nav/section-nav";
 import { Reveal } from "@/components/reveal";
 import { WaveCanvas, WaveRamp } from "@/components/wave/wave-field";
 import {
@@ -41,7 +42,7 @@ import { closer, hero, heroPlate, home, profile } from "@/content/profile";
 export default function Home() {
   return (
     <>
-      <Topbar />
+      <SectionNav />
 
       <main>
         {/* ── 00 · the hero: the knockout word over the dither wave ──────── */}
