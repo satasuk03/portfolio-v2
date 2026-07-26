@@ -268,6 +268,11 @@
   mask-size: 5px 5px;
   -webkit-mask-repeat: repeat;
   mask-repeat: repeat;
+  /* Let the dotted mask cover absolutely-positioned children (figure tags) that
+     intentionally overflow the frame's top edge. Without no-clip, the mask is
+     trimmed to the element's border box and the tag is cut off. */
+  -webkit-mask-clip: no-clip;
+  mask-clip: no-clip;
   opacity: calc(0.3 + 0.7 * var(--reveal));
   transition:
     --reveal 1600ms var(--ease-print),
