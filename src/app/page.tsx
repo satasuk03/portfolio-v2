@@ -91,7 +91,7 @@ export default function Home() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="caption text-spot-red">
+                  <dt className="caption text-magenta">
                     What I will not claim
                   </dt>
                   <dd className="title-sm mt-step-2 text-ink">

@@ -73,7 +73,7 @@ export default function Log() {
                   <h2 className="title text-ink">{entry.title}</h2>
                   {/* Only a failure gets the red mark. A redesign is not a fault. */}
                   {entry.kind === "incident" && (
-                    <span className="figure-tag bg-spot-red px-step-2 py-[0.2rem] text-paper">
+                    <span className="figure-tag bg-magenta px-step-2 py-[0.2rem] text-paper">
                       {entry.severity}
                     </span>
                   )}
@@ -161,7 +161,7 @@ export default function Log() {
                       </dd>
                     </div>
                     <div>
-                      <dt className="caption text-spot-red">
+                      <dt className="caption text-magenta">
                         What I will not claim
                       </dt>
                       <dd className="title-sm mt-step-2 text-ink">

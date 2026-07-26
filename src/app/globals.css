@@ -9,19 +9,19 @@
 
 @theme {
   /* paper stock */
-  --color-paper: #f2efe6;
-  --color-board: #e6e1d2;
+  --color-paper: #fafaf7;
+  --color-board: #efeee7;
 
   /* ink */
-  --color-ink: #14120e;
-  --color-ink-mid: #4a4640;
-  --color-halftone: #b8b2a2;
+  --color-ink: #111111;
+  --color-ink-mid: #4a4a45;
+  --color-halftone: #b9b9b1;
 
   /* spot inks — see The Ink Fill Rule */
-  --color-print-cyan: #0a7c93;
-  --color-cyan-deep: #08657a;
-  --color-spot-red: #e8332f;
-  --color-marker-yellow: #f5c518;
+  --color-print-cyan: #0092b8;
+  --color-cyan-deep: #006e88;
+  --color-magenta: #e8195b;
+  --color-marker-yellow: #ffc400;
 
   /* arcade calibration — /arcade only */
   --color-arcade-void: #0a0812;

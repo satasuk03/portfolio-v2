@@ -104,7 +104,7 @@ const STATE_STYLE: Record<LampState, string> = {
   /* The Red Means Over Rule + The Ink Fill Rule — a state is a filled field
      with type knocked out of it, never a coloured hairline. */
   live: "bg-print-cyan text-paper",
-  sunset: "bg-spot-red text-paper",
+  sunset: "bg-magenta text-paper",
   closed: "bg-halftone text-ink",
 };
 

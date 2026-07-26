@@ -77,7 +77,7 @@ export function ScalePanel({ tag }: { tag: string }) {
             <div key={stat.label}>
               <dd
                 className={`readout ${
-                  stat.attention ? "text-spot-red" : "text-ink"
+                  stat.attention ? "text-magenta" : "text-ink"
                 }`}
               >
                 {stat.value}
