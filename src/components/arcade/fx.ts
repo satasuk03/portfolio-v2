@@ -6,15 +6,22 @@
  * one dies, so an idle arena costs nothing — this page is otherwise a static
  * document and should not hold a frame loop open waiting for a click.
  *
- * Everything is composited additively ("lighter"): a CRT emits light, so where
- * effects overlap they get brighter instead of muddier. Motion and decay are
- * scaled by elapsed time, not frames — a 120Hz display would otherwise burn
- * every effect twice as fast. `flash` fills the whole arena and is the one
- * effect gated on prefers-reduced-motion; the bolt's crackle is re-randomized
- * per frame unless motion is reduced.
+ * Everything is composited "source-over" as solid inks on paper. (The dark
+ * room composited additively — a CRT emits light, so overlapping effects got
+ * brighter. On paper that math washes every overlap to white; ink does not
+ * add, it covers. Where the neon effects had a white-hot core, the print
+ * effect has an ink core.) Motion and decay are scaled by elapsed time, not
+ * frames — a 120Hz display would otherwise burn every effect twice as fast.
+ * `flash` fills the whole arena and is the one effect gated on
+ * prefers-reduced-motion; the bolt's crackle is re-randomized per frame
+ * unless motion is reduced.
  */
 
 type Point = { x: number; y: number };
+
+/* The print core of every effect — where the neon build used white-hot
+   centers, the paper build uses ink. Matches --color-ink. */
+const INK = "#111111";
 
 type Particle = {
   x: number;
@@ -119,7 +126,7 @@ export function createFx(canvas: HTMLCanvasElement): FxHandle {
 
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.globalCompositeOperation = "lighter";
+    ctx.globalCompositeOperation = "source-over";
 
     for (let i = shapes.length - 1; i >= 0; i--) {
       const s = shapes[i];
@@ -147,7 +154,7 @@ export function createFx(canvas: HTMLCanvasElement): FxHandle {
         ctx.beginPath();
         ctx.arc(x, y, 3.4, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = INK;
         ctx.beginPath();
         ctx.arc(x, y, 1.5, 0, Math.PI * 2);
         ctx.fill();
@@ -167,11 +174,11 @@ export function createFx(canvas: HTMLCanvasElement): FxHandle {
         ctx.fillRect(0, 0, rect.width, rect.height);
       } else if (s.kind === "bolt") {
         if (!reduced) s.pts = boltPath(s.from, s.to);
-        strokePath(s.pts, 3.5, s.color, 0.35 * s.life);
-        strokePath(s.pts, 1.25, "#ffffff", 0.9 * s.life);
+        strokePath(s.pts, 3.5, s.color, 0.9 * s.life);
+        strokePath(s.pts, 1.25, INK, 0.9 * s.life);
       } else if (s.kind === "beam") {
-        strokePath([s.from, s.to], 12 * s.life + 1, s.color, 0.55 * s.life);
-        strokePath([s.from, s.to], 3 * s.life + 0.5, "#ffffff", 0.95 * s.life);
+        strokePath([s.from, s.to], 12 * s.life + 1, s.color, 0.9 * s.life);
+        strokePath([s.from, s.to], 3 * s.life + 0.5, INK, 0.95 * s.life);
       } else if (s.kind === "ring") {
         ctx.globalAlpha = 0.85 * s.life;
         ctx.strokeStyle = s.color;
@@ -187,7 +194,7 @@ export function createFx(canvas: HTMLCanvasElement): FxHandle {
         ctx.beginPath();
         ctx.arc(s.at.x, s.at.y, 22 + (1 - s.life) * 12, s.spin + sweep, s.spin + sweep + 1.7);
         ctx.stroke();
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = INK;
         ctx.lineWidth = 1.4 * s.life + 0.3;
         ctx.beginPath();
         ctx.arc(s.at.x, s.at.y, (22 + (1 - s.life) * 12) * 0.78, s.spin + sweep, s.spin + sweep + 1.7);

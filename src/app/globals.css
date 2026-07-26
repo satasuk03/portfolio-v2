@@ -2,9 +2,9 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    THE GAME MANUAL — token system
-   Authority: DESIGN.md. Cream stock, one soft black, three spot inks. Depth is
-   keyline weight and halftone density; there is no elevation on paper. Neon
-   exists only inside /arcade.
+   Authority: DESIGN.md. Near-white paper, one soft black, three spot inks, one
+   calibration — /arcade shares the paper palette. Depth is keyline weight and
+   halftone density; there is no elevation on paper, and no glow anywhere.
    ────────────────────────────────────────────────────────────────────────── */
 
 @theme {
@@ -22,17 +22,6 @@
   --color-cyan-deep: #006e88;
   --color-magenta: #e8195b;
   --color-marker-yellow: #ffc400;
-
-  /* arcade calibration — /arcade only */
-  --color-arcade-void: #0a0812;
-  --color-arcade-panel: #150f26;
-  --color-arcade-cyan: #37e6ff;
-  --color-arcade-magenta: #ff2e6b;
-  --color-arcade-violet: #a855f7;
-  --color-arcade-gold: #ffcb2b;
-  --color-arcade-green: #38f5a8;
-  --color-arcade-text: #f0edff;
-  --color-arcade-dim: #8b96b8;
 
   --font-display: var(--font-kanit), system-ui, sans-serif;
   --font-body: var(--font-archivo), system-ui, sans-serif;
@@ -412,16 +401,16 @@
   }
 }
 
-/* NEXUS-9 winding up — the half-second of warning before it connects. */
+/* NEXUS-9 winding up — the half-second of warning before it connects. On paper
+   there is no glow to swell: the wind-up is scale, and the magenta fill the
+   `charging` state adds. */
 @keyframes boss-charge {
   0%,
   100% {
     transform: scale(1);
-    filter: brightness(1) drop-shadow(0 0 5px rgba(255, 46, 107, 0.4));
   }
   50% {
     transform: scale(1.08);
-    filter: brightness(1.6) drop-shadow(0 0 18px rgba(255, 46, 107, 0.9));
   }
 }
 
@@ -447,25 +436,26 @@
   }
 }
 
-/* Hull critical — the frame itself starts blinking red. */
+/* Hull critical — the plate itself starts blinking magenta. A fill pulse, not
+   a glow: emphasis on paper is ink, not light. */
 @keyframes low-hp {
   0%,
   100% {
-    box-shadow: 0 0 0 rgba(255, 46, 107, 0);
+    background-color: transparent;
   }
   50% {
-    box-shadow: 0 0 16px rgba(255, 46, 107, 0.7);
+    background-color: rgba(232, 25, 91, 0.18);
   }
 }
 
-/* The boss bar near death — the enrage warning. */
+/* The boss bar near death — the enrage warning, as a keyline pulse. */
 @keyframes enrage-pulse {
   0%,
   100% {
-    box-shadow: 0 0 3px rgba(255, 46, 107, 0.35);
+    border-color: var(--color-ink);
   }
   50% {
-    box-shadow: 0 0 16px rgba(255, 46, 107, 0.8);
+    border-color: var(--color-magenta);
   }
 }
 
@@ -493,7 +483,6 @@
   0% {
     opacity: 0;
     transform: scale(1.1);
-    filter: brightness(2.6);
   }
   55% {
     opacity: 1;
@@ -502,17 +491,6 @@
   100% {
     opacity: 1;
     transform: scale(1);
-    filter: brightness(1);
-  }
-}
-
-/* A slow CRT sweep travelling down the arena. */
-@keyframes scan-sweep {
-  0% {
-    transform: translateY(-2.5rem);
-  }
-  100% {
-    transform: translateY(14rem);
   }
 }
 
