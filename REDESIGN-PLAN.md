@@ -61,14 +61,15 @@ regular checkerboard with no wave visible in it. This one only showed up on scre
 numbers looked perfectly reasonable. A gamma (`pow(v, g)`) keeps the field spanning every band, so the
 boundaries between inks stay visible as contours and the surface reads as moving.
 
-Measured coverage across a full wave cycle, gamma mapping:
+Measured coverage across a full wave cycle, gamma mapping (re-measured against the shipped
+engine in step 2, stable across sampling domains — the original table ran a few points hot):
 
 | Coverage | gamma | paper | yellow | cyan | magenta |
 |---|---|---|---|---|---|
-| Whisper | `4.0` | 62% | 30% | 7% | 1% |
-| **Quiet** (default) | `2.6` | 41% | 43% | 13% | 3% |
-| Present | `1.7` | 22% | 49% | 25% | 5% |
-| Full ink | `1.0` | 6% | 39% | 45% | 10% |
+| Whisper | `4.0` | 68% | 27% | 5% | 1% |
+| **Quiet** (default) | `2.6` | 46% | 42% | 10% | 2% |
+| Present | `1.7` | 25% | 51% | 21% | 3% |
+| Full ink | `1.0` | 7% | 43% | 43% | 7% |
 
 Yellow is `1.4:1` on the ground, so a yellow-dominant field reads as a warm risograph tint rather than
 as decoration. Note that every setting keeps some cyan and magenta — that is the point, and it is why
