@@ -1,0 +1,553 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE GAME MANUAL — token system
+   Authority: DESIGN.md. Cream stock, one soft black, three spot inks. Depth is
+   keyline weight and halftone density; there is no elevation on paper. Neon
+   exists only inside /arcade.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* paper stock */
+  --color-paper: #f2efe6;
+  --color-board: #e6e1d2;
+
+  /* ink */
+  --color-ink: #14120e;
+  --color-ink-mid: #4a4640;
+  --color-halftone: #b8b2a2;
+
+  /* spot inks — see The Ink Fill Rule */
+  --color-print-cyan: #0a7c93;
+  --color-cyan-deep: #08657a;
+  --color-spot-red: #e8332f;
+  --color-marker-yellow: #f5c518;
+
+  /* arcade calibration — /arcade only */
+  --color-arcade-void: #0a0812;
+  --color-arcade-panel: #150f26;
+  --color-arcade-cyan: #37e6ff;
+  --color-arcade-magenta: #ff2e6b;
+  --color-arcade-violet: #a855f7;
+  --color-arcade-gold: #ffcb2b;
+  --color-arcade-green: #38f5a8;
+  --color-arcade-text: #f0edff;
+  --color-arcade-dim: #8b96b8;
+
+  --font-display: var(--font-kanit), system-ui, sans-serif;
+  --font-body: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-azeret-mono), ui-monospace, monospace;
+
+  /* eight steps */
+  --spacing-step-1: 0.25rem;
+  --spacing-step-2: 0.5rem;
+  --spacing-step-3: 0.75rem;
+  --spacing-step-4: 1rem;
+  --spacing-step-5: 1.5rem;
+  --spacing-step-6: 2.5rem;
+  --spacing-step-7: 4rem;
+  --spacing-step-8: 6.5rem;
+
+  --radius-chip: 999px;
+
+  /* the spread */
+  --container-spread: 82.5rem;
+
+  --ease-print: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  :root {
+    /* The running head's exact height. Shared by the topbar and by the hero's
+       min-height, so a full-height first viewport cannot overflow the fold by
+       the height of the bar sitting above it. */
+    --topbar-h: 3.5rem;
+    --topbar-rule: 2px;
+  }
+
+  html {
+    background-color: var(--color-paper);
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The Mono Owns Measurement Rule — tabular by default wherever mono lands. */
+  :where(body) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--color-marker-yellow);
+    color: var(--color-ink);
+  }
+
+  /* Printed focus: a hard offset block, never a glow. */
+  :focus-visible {
+    outline: 3px solid var(--color-print-cyan);
+    outline-offset: 2px;
+  }
+
+  .measure {
+    max-width: 68ch;
+  }
+}
+
+@layer utilities {
+  /* ── type ─────────────────────────────────────────────────────────────── */
+
+  /* The Crop Rule — set large enough that a frame may cut it. */
+  .display-giant {
+    font-family: var(--font-display);
+    font-weight: 900;
+    /* Tuned so the word bleeds a little past both edges at every width — The
+       Crop Rule wants a printed headline, not a word cut in half. */
+    font-size: clamp(3rem, 15.5vw, 16rem);
+    line-height: 0.82;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.75rem, 9vw, 6rem);
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+
+  .title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.2vw, 2.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .title-sm {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+
+  /* The body step. One named utility with a responsive bump rather than a
+     literal 0.9375rem repeated across the codebase — 15px on a phone, 16px from
+     `sm`, which is the step the whole site's prose actually uses. */
+  .body-copy {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  @media (min-width: 40rem) {
+    .body-copy {
+      font-size: 1rem;
+    }
+  }
+
+  .caption {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .figure-tag {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .readout {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .readout-sm {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── halftone & pattern ───────────────────────────────────────────────── */
+
+  /* The manual's stand-in for a photograph. Density encodes emphasis. */
+  .halftone {
+    background-image: radial-gradient(
+      var(--color-halftone) 1.15px,
+      transparent 1.2px
+    );
+    background-size: 6px 6px;
+  }
+
+  .halftone-coarse {
+    background-image: radial-gradient(
+      var(--color-halftone) 2.1px,
+      transparent 2.2px
+    );
+    background-size: 9px 9px;
+  }
+
+  .halftone-fine {
+    background-image: radial-gradient(
+      var(--color-halftone) 0.85px,
+      transparent 0.9px
+    );
+    background-size: 4px 4px;
+  }
+
+  .halftone-ink {
+    background-image: radial-gradient(
+      var(--color-ink) 1.15px,
+      transparent 1.2px
+    );
+    background-size: 6px 6px;
+  }
+
+  /* Diagonal speed stripes. Section boundaries only — never behind prose. */
+  .stripes {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--color-ink) 0 3px,
+      transparent 3px 9px
+    );
+  }
+
+  .stripes-paper {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--color-paper) 0 3px,
+      transparent 3px 9px
+    );
+  }
+
+  /* ── figure frames ────────────────────────────────────────────────────── */
+
+  .frame {
+    border: 3px solid var(--color-ink);
+  }
+
+  .frame-inner {
+    border: 2px solid var(--color-ink);
+  }
+
+  .rule-heavy {
+    border-top: 5px solid var(--color-ink);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE DITHER REVEAL — the signature transition. Content resolves from an
+   ordered dot field into solid ink, the way a printing plate inks up. Driven by
+   --reveal (0 → 1) set from scroll progress, so it is scrubbed, never autoplayed.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Registered so it can be transitioned. Initial value 1 — fully inked — so any
+   client that never runs the observer, or never supports @property, shows solid
+   content. The effect is additive; its absence is never a blank page. */
+@property --reveal {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+.dither-reveal {
+  --dot-r: calc(0.35px + 2.35px * var(--reveal));
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    #000 0,
+    #000 var(--dot-r),
+    transparent calc(var(--dot-r) + 0.5px)
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    #000 0,
+    #000 var(--dot-r),
+    transparent calc(var(--dot-r) + 0.5px)
+  );
+  -webkit-mask-size: 5px 5px;
+  mask-size: 5px 5px;
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  opacity: calc(0.3 + 0.7 * var(--reveal));
+  transition:
+    --reveal 900ms var(--ease-print),
+    opacity 900ms var(--ease-print);
+}
+
+/* Fully inked flattens the mask to a solid one rather than removing it.
+   `mask-image: none` would be the obvious choice and is a trap: dropping the
+   mask changes Chromium's layer tree, and the sticky WebGL figure behind these
+   elements then stops painting in the region above the hero's headline. Verified
+   on the production static export — restoring any mask restores the drawing
+   exactly. A solid mask is a no-op visually (every pixel fully opaque) and keeps
+   the layer promotion these elements had while they were dithering. */
+.dither-reveal[data-inked="true"] {
+  /* Past 1.36 the dot radius exceeds the tile's half-diagonal, so the dots
+     overlap completely and the mask is opaque everywhere — the same mask, driven
+     past full coverage. Cheaper than swapping in a second gradient, and it keeps
+     the value inside the one variable that drives the effect. */
+  --reveal: 1.4;
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ARCADE MOTION — /arcade only. Impact needs to be felt, so this is the one
+   surface with hit shake and popping numerals. Paper never moves like this.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@keyframes arena-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-6px, 3px);
+  }
+  40% {
+    transform: translate(6px, -3px);
+  }
+  60% {
+    transform: translate(-4px, -2px);
+  }
+  80% {
+    transform: translate(4px, 2px);
+  }
+}
+
+@keyframes dmg-pop {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(-14px) scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-56px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Idle hover — the fighters are airborne, never planted. */
+@keyframes fighter-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Attack thrust — toward the enemy, then back to guard. */
+@keyframes fighter-lunge-r {
+  0% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(24px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Recoil, keyed by side: the boss is knocked right, you are knocked left. */
+@keyframes fighter-hit-r {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  25% {
+    transform: translateX(9px) scale(1.07);
+  }
+  60% {
+    transform: translateX(-3px) scale(0.98);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes fighter-hit-l {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  25% {
+    transform: translateX(-9px) scale(1.07);
+  }
+  60% {
+    transform: translateX(3px) scale(0.98);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* NEXUS-9 winding up — the half-second of warning before it connects. */
+@keyframes boss-charge {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 5px rgba(255, 46, 107, 0.4));
+  }
+  50% {
+    transform: scale(1.08);
+    filter: brightness(1.6) drop-shadow(0 0 18px rgba(255, 46, 107, 0.9));
+  }
+}
+
+/* The gold halo around the craft once the combo is worth protecting. */
+@keyframes combo-aura {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.07);
+  }
+}
+
+@keyframes combo-pop {
+  0% {
+    transform: scale(1.7);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Hull critical — the frame itself starts blinking red. */
+@keyframes low-hp {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(255, 46, 107, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255, 46, 107, 0.7);
+  }
+}
+
+/* The boss bar near death — the enrage warning. */
+@keyframes enrage-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 3px rgba(255, 46, 107, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255, 46, 107, 0.8);
+  }
+}
+
+/* Critical hits rattle the whole cabinet harder than ordinary ones. */
+@keyframes arena-shake-hard {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  15% {
+    transform: translate(-9px, 4px) rotate(-0.5deg);
+  }
+  35% {
+    transform: translate(8px, -5px) rotate(0.5deg);
+  }
+  55% {
+    transform: translate(-6px, 3px) rotate(-0.3deg);
+  }
+  75% {
+    transform: translate(5px, -2px) rotate(0.2deg);
+  }
+}
+
+@keyframes outcome-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.1);
+    filter: brightness(2.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* A slow CRT sweep travelling down the arena. */
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-2.5rem);
+  }
+  100% {
+    transform: translateY(14rem);
+  }
+}
+
+/* Ambient embers drifting up through the arena. */
+@keyframes mote-drift {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.8;
+  }
+  75% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(22px, -64px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Every beat is legible at once; the choreography is what is lost. Driven past
+     full coverage rather than unset, for the layer-tree reason above. */
+  .dither-reveal {
+    --reveal: 1.4 !important;
+    opacity: 1 !important;
+  }
+}
