@@ -8,31 +8,35 @@
  *   whole fields. Heavy keylines, halftone dot fields, FIG-tagged frames. Kanit
  *   poster display, Archivo prose, Azeret Mono on every numeral. No shadow, no
  *   glow, no paper texture — the retro is structural.
- * STORY: Two retrieval systems on two different problem shapes, a platform that
- *   served 100k+ and is now sunset, the code you can actually read, an honest
- *   line about which codebase was agent-directed — then LinkedIn or GitHub.
+ * STORY: Six sections in a fixed order — About, Skills, Experience, Work
+ *   projects, Personal projects, Off the clock — then the closer. Numbering is
+ *   real: 01…06 encodes reading order, not decoration.
  * FIRST VIEWPORT: RETRIEVAL knocked out of the paper with the three-ink dither
- *   wave moving through the letterforms; the sentence completes beneath it; role,
- *   location and availability above; both actions below the fold line on mobile.
+ *   wave moving through the letterforms; the sentence completes beneath it on
+ *   an opaque sheet with the thesis line, the raw photo plate, and the two
+ *   actions; role, location and availability on a keylined slip above.
  * FORM: The game manual. Brief-pinned by Ze over three rounds (light arcade →
- *   Japanese arcade print → structural intensity), so the direction roll was not
- *   run: a pinned direction beats the roll. Staging: native scroll, nothing
- *   gated.
+ *   Japanese arcade print → structural intensity), so the direction roll was
+ *   not run: a pinned direction beats the roll. Staging: native scroll,
+ *   nothing gated.
  */
 
 import { ActionLinks, Colophon, Topbar } from "@/components/actions";
-import { Figure, SectionOpener, SpeedBreak } from "@/components/manual";
+import { Figure, SectionOpener } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
-import { WaveCanvas } from "@/components/wave/wave-field";
+import { WaveCanvas, WaveRamp } from "@/components/wave/wave-field";
 import {
-  ArcadeDoor,
-  ClientSites,
+  AboutFigure,
+  ClientChips,
   ExperienceRecord,
-  ProjectIndex,
+  OffTheClock,
+  PersonalProjects,
   RetrievalFigures,
+  SkillsTable,
+  WorkProjectCards,
 } from "@/components/sections";
 import { method } from "@/content/retrieval";
-import { hero, home, profile } from "@/content/profile";
+import { closer, hero, heroPlate, home, profile } from "@/content/profile";
 
 export default function Home() {
   return (
@@ -40,86 +44,131 @@ export default function Home() {
       <Topbar />
 
       <main>
-        {/* ── the hero: the knockout word over the dither wave ────────────── */}
+        {/* ── 00 · the hero: the knockout word over the dither wave ──────── */}
         <Hero />
 
-        <SpeedBreak />
+        <WaveRamp seed={11} />
 
-        {/* ── experience, grouped by company ─────────────────────────────── */}
+        {/* ── 01 · about ─────────────────────────────────────────────────── */}
+        <Spread>
+          <SectionOpener
+            id="about"
+            seq="§ 01"
+            title="About me"
+            lede="The short version."
+          />
+          <AboutFigure />
+        </Spread>
+
+        {/* ── 02 · skills ────────────────────────────────────────────────── */}
+        <Spread>
+          <SectionOpener
+            id="skills"
+            seq="§ 02"
+            title="Skills"
+            lede="Grouped by what it's for, not by logo count. Everything here is something I've shipped with."
+          />
+          <SkillsTable />
+        </Spread>
+
+        <WaveRamp seed={27} />
+
+        {/* ── 03 · experience ────────────────────────────────────────────── */}
         <Spread>
           <SectionOpener
             id="experience"
-            seq="§ 02"
+            seq="§ 03"
             title="Work experience"
             lede="Grouped by company, newest first. Three companies, four roles, 2019 to now."
           />
           <ExperienceRecord />
         </Spread>
 
-        {/* ── the retrieval work, in detail — rehomed from the deleted sticky
-               chapter; it is the depth under the two Zentry retrieval roles ── */}
-        <Spread>
-          <SectionOpener
-            seq="§ 03"
-            title="The retrieval work"
-            lede="Two retrieval systems on two different problem shapes. Both are private employer codebases, so these figures are the evidence rather than a link."
-          />
-          <RetrievalFigures />
-        </Spread>
+        <WaveRamp seed={43} />
 
-        {/* ── the honest bit ─────────────────────────────────────────────── */}
-        <Spread>
-          <Reveal>
-            <Figure tag="04" label="Method" tone="board">
-              <h2 className="title text-ink">{method.title}</h2>
-              <div className="measure mt-step-4 flex flex-col gap-step-4 body-copy text-ink-mid">
-                {method.body.map((para) => (
-                  <p key={para.slice(0, 24)}>{para}</p>
-                ))}
-              </div>
-              <dl className="mt-step-6 grid gap-step-5 border-t-2 border-ink pt-step-4 sm:grid-cols-2">
-                <div>
-                  <dt className="caption text-cyan-deep">
-                    What I can defend in an interview
-                  </dt>
-                  <dd className="title-sm mt-step-2 text-ink">
-                    {method.defensible}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="caption text-magenta">
-                    What I will not claim
-                  </dt>
-                  <dd className="title-sm mt-step-2 text-ink">
-                    {method.refused}
-                  </dd>
-                </div>
-              </dl>
-            </Figure>
-          </Reveal>
-        </Spread>
-
-        <SpeedBreak />
-
-        {/* ── inspectable code ───────────────────────────────────────────── */}
+        {/* ── 04 · work projects ─────────────────────────────────────────── */}
         <Spread>
           <SectionOpener
             id="work"
-            seq="§ 05"
-            title="Public work"
-            lede="Solo, hand-built, readable. Every employer codebase above is private, so this is the only place the actual code is."
+            seq="§ 04"
+            title="Work projects"
+            lede="Three private codebases, kept short on purpose — the detail is interview material, not website copy. The retrieval work gets its figures below the cards."
           />
-          <ProjectIndex />
+          <WorkProjectCards />
+          <div className="mt-step-7">
+            <RetrievalFigures />
+          </div>
+          <div className="mt-step-7">
+            {/* The honest bit — PRODUCT.md Principle 4: the AI-leveraged work
+                is labelled, because the credibility of both halves depends on
+                not blurring them. */}
+            <Reveal>
+              <Figure tag="04.6" label="Method" tone="board">
+                <h2 className="title text-ink">{method.title}</h2>
+                <div className="measure mt-step-4 flex flex-col gap-step-4 body-copy text-ink-mid">
+                  {method.body.map((para) => (
+                    <p key={para.slice(0, 24)}>{para}</p>
+                  ))}
+                </div>
+                <dl className="mt-step-6 grid gap-step-5 border-t-2 border-ink pt-step-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="caption text-cyan-deep">
+                      What I can defend in an interview
+                    </dt>
+                    <dd className="title-sm mt-step-2 text-ink">
+                      {method.defensible}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="caption text-magenta">
+                      What I will not claim
+                    </dt>
+                    <dd className="title-sm mt-step-2 text-ink">
+                      {method.refused}
+                    </dd>
+                  </div>
+                </dl>
+              </Figure>
+            </Reveal>
+          </div>
+          <div className="mt-step-7">
+            <ClientChips />
+          </div>
         </Spread>
 
+        {/* ── 05 · personal projects ─────────────────────────────────────── */}
         <Spread>
-          <SectionOpener seq="§ 06" title="Shipped for other people" />
-          <ClientSites />
+          <SectionOpener
+            id="personal"
+            seq="§ 05"
+            title="Personal projects"
+            lede="Public, solo, hand-built. Every employer codebase above is private, so this is the only place you can read the actual code."
+          />
+          <PersonalProjects />
         </Spread>
 
-        {/* ── the door ───────────────────────────────────────────────────── */}
+        <WaveRamp seed={59} />
+
+        {/* ── 06 · off the clock ─────────────────────────────────────────── */}
         <Spread>
-          <ArcadeDoor />
+          <SectionOpener
+            id="off-the-clock"
+            seq="§ 06"
+            title="Off the clock"
+            lede="Four things I do that aren't engineering."
+          />
+          <OffTheClock />
+        </Spread>
+
+        {/* ── the closer: an invitation, then LinkedIn and GitHub ────────── */}
+        <Spread>
+          <Reveal>
+            <h2 className="display text-ink">{closer.title}</h2>
+            <p className="measure mt-step-4 body-copy text-ink-mid">
+              {closer.body}
+            </p>
+            <ActionLinks className="mt-step-5" />
+          </Reveal>
         </Spread>
       </main>
 
@@ -165,8 +214,10 @@ function Hero() {
           the wave fills it — otherwise a phone opens on several hundred pixels
           of blank paper, and the field is the reason to look. The running head
           is the one element in this band, so it gets its own paper sheet with a
-          keyline: the field never sits behind copy. */}
-      <div className="relative z-10 flex flex-1 flex-col px-step-5 pt-step-6 sm:px-step-7">
+          keyline: the field never sits behind copy. The min-height guarantees
+          the wave a real share of the first viewport even now that the photo
+          plate makes the sheet below tall enough to eat all the slack. */}
+      <div className="relative z-10 flex min-h-[18svh] flex-1 flex-col px-step-5 pt-step-6 sm:px-step-7">
         <div className="mx-auto w-full max-w-spread">
           <p className="caption frame-inner inline-block bg-paper px-step-3 py-step-2 text-ink-mid">
             {profile.name}
@@ -200,21 +251,60 @@ function Hero() {
           <p className="figure-tag text-ink-mid">{hero.figureCaption}</p>
         </div>
 
-        <div className="mx-auto w-full max-w-spread pt-step-6">
-          <h1>
-            {/* The knocked-out word is decorative SVG, so the whole sentence
-                lives here once, in full, for assistive tech and for search. */}
-            <span className="sr-only">{hero.spoken}</span>
-            <span aria-hidden className="title block text-ink">
-              {hero.tail}
-            </span>
-          </h1>
+        <div className="mx-auto grid w-full max-w-spread gap-step-6 pt-step-6 lg:grid-cols-[1.5fr_1fr] lg:items-start">
+          <div>
+            <h1>
+              {/* The knocked-out word is decorative SVG, so the whole sentence
+                  lives here once, in full, for assistive tech and for search. */}
+              <span className="sr-only">{hero.spoken}</span>
+              <span aria-hidden className="title block text-ink">
+                {hero.tail}
+              </span>
+            </h1>
 
-          <p className="measure mt-step-4 body-copy text-ink">
-            {home.standfirst}
-          </p>
+            <p className="measure mt-step-4 body-copy text-ink">
+              {home.standfirst}
+            </p>
 
-          <ActionLinks className="mt-step-5" />
+            <ActionLinks className="mt-step-5" />
+          </div>
+
+          {/* The raw photograph — full tone, in a keylined plate. Not dithered:
+              the dither is the background's job now. */}
+          <figure className="frame relative bg-board">
+            <div className="absolute -top-px left-0 flex translate-y-[-50%] items-center gap-step-2 pl-step-3">
+              <span className="figure-tag bg-ink px-step-2 py-[0.2rem] text-paper">
+                Fig. 00
+              </span>
+              <span className="caption bg-paper px-step-2 text-ink-mid">
+                {heroPlate.label}
+              </span>
+            </div>
+            <img
+              src={heroPlate.src}
+              alt={heroPlate.alt}
+              className="block w-full"
+            />
+            <dl className="grid grid-cols-2 border-t-[3px] border-ink bg-paper">
+              {heroPlate.cells.map((cell, i) => (
+                <div
+                  key={cell.term}
+                  className={`px-step-3 py-step-3 ${
+                    i > 0 ? "border-l-2 border-ink" : ""
+                  }`}
+                >
+                  <dt className="caption text-ink-mid">{cell.term}</dt>
+                  <dd
+                    className={`readout-sm mt-step-1 font-bold ${
+                      cell.accent ? "text-cyan-deep" : "text-ink"
+                    }`}
+                  >
+                    {cell.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </figure>
         </div>
       </div>
     </div>

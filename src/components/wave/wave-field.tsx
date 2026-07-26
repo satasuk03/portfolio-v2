@@ -46,3 +46,19 @@ export function WaveCanvas({
 
   return <canvas ref={ref} aria-hidden className={className} />;
 }
+
+/**
+ * A section ramp — a 30px slice of the same field, replacing the diagonal
+ * speed stripes at section boundaries. Own slice of the surface via `seed`;
+ * smaller cells than the hero so the contour reads at this height.
+ */
+export function WaveRamp({ seed }: { seed: number }) {
+  return (
+    <div
+      aria-hidden
+      className="relative h-[30px] overflow-hidden border-y-2 border-ink"
+    >
+      <WaveCanvas seed={seed} cell={4} className="block h-full w-full" />
+    </div>
+  );
+}

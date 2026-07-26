@@ -39,7 +39,7 @@ export type RetrievalSystem = {
 
 export const retrievalSystems: RetrievalSystem[] = [
   {
-    seq: "01",
+    seq: "04.4",
     product: "zentry-data",
     name: "News search & deep research",
     span: "2025–2026",
@@ -60,7 +60,7 @@ export const retrievalSystems: RetrievalSystem[] = [
     ],
   },
   {
-    seq: "02",
+    seq: "04.5",
     product: "XOXONA",
     name: "The knowledge-book system",
     span: "2026—",

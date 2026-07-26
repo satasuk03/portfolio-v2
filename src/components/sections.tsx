@@ -1,12 +1,80 @@
-import Link from "next/link";
 import { Figure, StackRow } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
+import { WaveCanvas } from "@/components/wave/wave-field";
 import { companies } from "@/content/experience";
-import { clientSites, projects } from "@/content/projects";
+import { hobbies } from "@/content/hobbies";
+import { about } from "@/content/profile";
+import {
+  clientChips,
+  personalOverflow,
+  projects,
+  workProjects,
+} from "@/content/projects";
 import { retrievalSystems } from "@/content/retrieval";
+import { skillGroups } from "@/content/skills";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   WORK EXPERIENCE — grouped by company, per Ze's brief (REDESIGN-PLAN.md §4).
+   § 01 ABOUT — one figure, four short paragraphs. First person, no adjective
+   stacking; the through-line is the same judgment applied further up each time.
+   ────────────────────────────────────────────────────────────────────────── */
+
+export function AboutFigure() {
+  return (
+    <Reveal>
+      <Figure tag="01" label="The operator">
+        <div className="measure flex flex-col gap-step-4">
+          {about.paragraphs.map((para, i) => (
+            <p
+              key={para.slice(0, 24)}
+              className={i === 0 ? "title-sm text-ink" : "body-copy text-ink-mid"}
+            >
+              {para}
+            </p>
+          ))}
+        </div>
+      </Figure>
+    </Reveal>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   § 02 SKILLS — grouped by what it is for, not by logo count. The AI &
+   retrieval row leads and takes the yellow highlighter fill — the one place a
+   whole row of yellow is allowed, because it is the site's lead claim, and
+   yellow is never set as type on paper (1.4:1), only as a fill behind ink.
+   ────────────────────────────────────────────────────────────────────────── */
+
+export function SkillsTable() {
+  return (
+    <Reveal>
+      <div className="frame bg-paper">
+        {skillGroups.map((group, i) => (
+          <div
+            key={group.key}
+            className={`grid gap-step-3 px-step-4 py-step-4 sm:grid-cols-[11rem_1fr] sm:items-start sm:gap-step-5 ${
+              i > 0 ? "border-t-2 border-ink" : ""
+            } ${group.lead ? "bg-marker-yellow" : ""}`}
+          >
+            <h3 className="title-sm text-ink">{group.key}</h3>
+            <ul className="flex flex-wrap gap-step-2">
+              {group.items.map((item) => (
+                <li
+                  key={item}
+                  className="readout-sm border-2 border-ink bg-paper px-step-2 py-[0.15rem] text-ink"
+                >
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </Reveal>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   § 03 EXPERIENCE — grouped by company, per Ze's brief (REDESIGN-PLAN.md §4).
    One figure per company with roles nested inside; newest company first,
    newest role first within. Numbers live in the prose, not in a stat panel —
    the four-readout grid was cut in the redesign.
@@ -70,9 +138,68 @@ export function ExperienceRecord() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE RETRIEVAL WORK — the site's strongest technical material. Rehomed out
-   of the deleted sticky chapter (REDESIGN-PLAN.md §3): it now follows the
-   experience figures, as the depth underneath the two Zentry retrieval roles.
+   § 04 WORK PROJECTS — three cards, short by instruction. The seeded wave
+   still stands in for a screenshot: recognisable as a plate, unreadable as a
+   spec. Private codebases get a "Private · ask me" footer, not a dead link.
+   ────────────────────────────────────────────────────────────────────────── */
+
+export function WorkProjectCards() {
+  return (
+    <div className="grid gap-step-5 sm:grid-cols-2 lg:grid-cols-3">
+      {workProjects.map((project, i) => (
+        <Reveal key={project.name} delay={i * 60} className="flex">
+          <article className="frame flex flex-1 flex-col bg-paper">
+            <div className="h-[6.5rem] shrink-0 overflow-hidden border-b-[3px] border-ink">
+              <WaveCanvas
+                still
+                seed={project.seed}
+                cell={6}
+                gamma={2.0}
+                className="block h-full w-full"
+              />
+            </div>
+            <div className="flex-1 px-step-4 py-step-4">
+              <span
+                className={`figure-tag inline-block px-step-2 py-[0.2rem] ${
+                  project.live
+                    ? "bg-print-cyan text-paper"
+                    : "border-2 border-ink text-ink"
+                }`}
+              >
+                {project.chip}
+              </span>
+              <h3 className="title-sm mt-step-3 text-ink">{project.name}</h3>
+              <p className="mt-step-2 text-sm leading-relaxed text-ink-mid">
+                {project.body}
+              </p>
+            </div>
+            <footer className="border-t-2 border-ink px-step-4 py-step-2">
+              {project.href ? (
+                <a
+                  href={project.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="figure-tag text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
+                >
+                  {project.foot}
+                </a>
+              ) : (
+                <span className="figure-tag text-cyan-deep">
+                  {project.foot}
+                </span>
+              )}
+            </footer>
+          </article>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE RETRIEVAL WORK, IN DETAIL — the depth under two of the three cards
+   above, and the site's strongest technical material. Rehomed out of the
+   deleted sticky chapter into § 04 (REDESIGN-PLAN.md §3).
    ────────────────────────────────────────────────────────────────────────── */
 
 export function RetrievalFigures() {
@@ -118,136 +245,136 @@ export function RetrievalFigures() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   PUBLIC WORK — the only place a reader can read the actual code, which is what
-   earns the right to talk plainly about the agent-directed codebase.
+   § 04's foot — freelance as one chip row. Breadth, not depth; the ruled
+   client list with per-site copy was cut with the redesign.
    ────────────────────────────────────────────────────────────────────────── */
 
-export function ProjectIndex() {
-  const threads = [
-    { key: "tooling" as const, label: "Agent tooling" },
-    { key: "craft" as const, label: "Craft apps" },
-  ];
-
+export function ClientChips() {
   return (
-    <div className="grid gap-step-7 lg:grid-cols-2">
-      {threads.map((thread) => (
-        <div key={thread.key}>
-          <h3 className="caption border-b-2 border-ink pb-step-2 text-ink">
-            {thread.label}
-          </h3>
-          <ul>
-            {projects
-              .filter((p) => p.thread === thread.key)
-              .map((project, i) => (
-                <Reveal
-                  as="li"
-                  key={project.name}
-                  delay={i * 50}
-                  className="border-b border-halftone"
+    <Reveal>
+      <Figure tag="04.7" label="Shipped for clients" tone="board">
+        <p className="body-copy text-ink-mid">
+          Freelance and client work, shown as a row rather than cards —
+          they&rsquo;re breadth, not depth.
+        </p>
+        <ul className="mt-step-4 flex flex-wrap gap-step-2">
+          {clientChips.map((chip) => (
+            <li key={chip.name}>
+              {chip.href ? (
+                <a
+                  href={chip.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="readout-sm inline-block border-2 border-ink bg-paper px-step-2 py-[0.15rem] text-ink transition-colors duration-150 hover:bg-ink hover:text-paper"
                 >
-                  <a
-                    href={project.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group block py-step-4 transition-colors duration-150 hover:bg-board"
-                  >
-                    <div className="flex items-baseline justify-between gap-step-3">
-                      <span className="title-sm text-ink group-hover:text-cyan-deep">
-                        {project.name}
-                        {project.nativeName && (
-                          <span className="ml-step-2 text-ink-mid">
-                            {project.nativeName}
-                          </span>
-                        )}
-                      </span>
-                      <span className="readout-sm shrink-0 text-ink-mid">
-                        {project.year}
-                      </span>
-                    </div>
-                    <p className="mt-step-2 body-copy text-ink">
-                      {project.pitch}
-                    </p>
-                    <p className="mt-step-2 text-sm leading-relaxed text-ink-mid">
-                      {project.detail}
-                    </p>
-                    <p className="readout-sm mt-step-3 text-ink-mid">
-                      {project.stack.join(" · ")}
-                    </p>
-                  </a>
-                </Reveal>
-              ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
- * A ruled list, not a three-up of equal cards. The card grid this replaces broke
- * two of the system's own rules at once: same-size cards as page structure, and
- * a whole-panel Marker Yellow hover fill (yellow is a marker stroke behind ink,
- * never a large field). Rows also let each entry be as tall as its own copy.
- */
-export function ClientSites() {
-  return (
-    <ul className="border-t-2 border-ink">
-      {clientSites.map((site, i) => (
-        <Reveal as="li" key={site.name} delay={i * 60} className="border-b-2 border-ink">
-          <a
-            href={site.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group grid gap-step-2 py-step-5 transition-colors duration-150 hover:bg-board lg:grid-cols-[1fr_1.4fr_auto] lg:items-baseline lg:gap-step-6"
-          >
-            <span className="title-sm text-ink group-hover:text-cyan-deep">
-              {site.name}
-            </span>
-            <span className="body-copy text-ink-mid">{site.detail}</span>
-            <span className="readout-sm shrink-0 text-cyan-deep">
-              {site.href.replace("https://", "")} ↗
-            </span>
-          </a>
-        </Reveal>
-      ))}
-    </ul>
+                  {chip.name} ↗
+                </a>
+              ) : (
+                <span className="readout-sm inline-block border-2 border-ink bg-paper px-step-2 py-[0.15rem] text-ink">
+                  {chip.name}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </Figure>
+    </Reveal>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE ARCADE DOOR — recolored into the main palette in step 7 of the redesign;
-   until then it keeps its own dark-room tokens.
+   § 05 PERSONAL PROJECTS — the load-bearing section for craft. Public, solo,
+   hand-built, and the only place a reader can read Ze's actual code; that is
+   precisely what lets the XOXONA leverage story be told without defensiveness.
+   Four cards, then the overflow as one paragraph.
    ────────────────────────────────────────────────────────────────────────── */
 
-export function ArcadeDoor() {
+const THREAD_CHIP: Record<string, string> = {
+  tooling: "bg-marker-yellow text-ink",
+  craft: "border-2 border-ink text-ink",
+};
+
+const THREAD_LABEL: Record<string, string> = {
+  tooling: "Agent tooling",
+  craft: "Craft",
+};
+
+export function PersonalProjects() {
+  const featured = projects.filter((p) => p.featured);
+  return (
+    <div>
+      <div className="grid gap-step-5 sm:grid-cols-2">
+        {featured.map((project, i) => (
+          <Reveal key={project.name} delay={i * 60} className="flex">
+            <article className="frame flex flex-1 flex-col bg-paper">
+              <div className="flex-1 px-step-4 py-step-4">
+                <span
+                  className={`figure-tag inline-block px-step-2 py-[0.2rem] ${THREAD_CHIP[project.thread]}`}
+                >
+                  {THREAD_LABEL[project.thread]}
+                </span>
+                <h3 className="title-sm mt-step-3 text-ink">{project.name}</h3>
+                <p className="mt-step-2 text-sm leading-relaxed text-ink-mid">
+                  {project.detail}
+                </p>
+              </div>
+              <footer className="border-t-2 border-ink px-step-4 py-step-2">
+                <a
+                  href={project.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="figure-tag text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
+                >
+                  github ↗
+                </a>
+              </footer>
+            </article>
+          </Reveal>
+        ))}
+      </div>
+
+      <p className="measure mt-step-6 body-copy text-ink-mid">
+        Also public:{" "}
+        {personalOverflow.map((item, i) => (
+          <span key={item.name}>
+            {i > 0 && ", "}
+            <strong className="font-semibold text-ink">{item.name}</strong>
+            {item.note && <> ({item.note})</>}
+          </span>
+        ))}
+        .
+      </p>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   § 06 OFF THE CLOCK — four panels. "AI Builder" is deliberately NOT one of
+   them; see hobbies.ts. Every panel is draft copy until Ze supplies a line —
+   the DRAFT chip renders in development only, and the step-8 checklist greps
+   the data file, so a release cannot carry placeholders by accident.
+   ────────────────────────────────────────────────────────────────────────── */
+
+export function OffTheClock() {
   return (
     <Reveal>
-      <Link
-        href="/arcade"
-        className="group relative block overflow-hidden border-[3px] border-ink bg-arcade-void px-step-5 py-step-7 sm:px-step-7"
-      >
-        <div
-          aria-hidden
-          className="stripes-paper absolute inset-0 opacity-[0.07] transition-opacity duration-300 group-hover:opacity-[0.14]"
-        />
-        <div className="relative flex flex-wrap items-end justify-between gap-step-5">
-          <div>
-            <p className="figure-tag text-arcade-cyan">Insert coin</p>
-            <p className="display mt-step-3 text-arcade-text">
-              The arcade
-              <br />
-              is through here.
-            </p>
-            <p className="mt-step-4 max-w-[44ch] body-copy text-arcade-dim">
-              A boss battle, built for no reason other than that it is fun. The
-              only dark room on the site — everything else is printed on paper.
-            </p>
+      {/* Ink ground plus a 2px gap draws the interior rules for free. */}
+      <div className="frame grid grid-cols-1 gap-[2px] bg-ink sm:grid-cols-2 lg:grid-cols-4">
+        {hobbies.map((hobby) => (
+          <div key={hobby.n} className="bg-paper px-step-4 py-step-5">
+            <div className="flex items-baseline justify-between gap-step-3">
+              <span className="figure-tag text-cyan-deep">{hobby.n}</span>
+              {hobby.draft && process.env.NODE_ENV !== "production" && (
+                <span className="figure-tag bg-magenta px-step-2 py-[0.2rem] text-paper">
+                  Draft
+                </span>
+              )}
+            </div>
+            <h3 className="title-sm mt-step-3 text-ink">{hobby.name}</h3>
+            <p className="mt-step-3 body-copy text-ink-mid">{hobby.body}</p>
           </div>
-          <span className="caption border-2 border-arcade-cyan px-step-5 py-step-3 text-arcade-cyan transition-colors duration-150 group-hover:bg-arcade-cyan group-hover:text-arcade-void">
-            Enter →
-          </span>
-        </div>
-      </Link>
+        ))}
+      </div>
     </Reveal>
   );
 }

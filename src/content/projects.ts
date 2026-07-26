@@ -3,6 +3,8 @@ export type Project = {
   /** Native script kept where the project has one. */
   nativeName?: string;
   year: string;
+  /** One of the four cards in § 05; the rest are the overflow paragraph. */
+  featured?: boolean;
   pitch: string;
   detail: string;
   stack: string[];
@@ -20,6 +22,7 @@ export const projects: Project[] = [
   {
     name: "philm",
     year: "2026",
+    featured: true,
     pitch: "A photo darkroom in the browser.",
     detail:
       "Upload a photo, apply .cube LUT film emulation, frame it, export a PNG. Trilinear LUT interpolation runs in a Web Worker to keep the main thread free, with a fallback path for Safari.",
@@ -41,6 +44,7 @@ export const projects: Project[] = [
   {
     name: "micro-gfx",
     year: "2026",
+    featured: true,
     pitch: "A generator for hand-drawn technical instrument graphics.",
     detail:
       "Dependency-free and seeded, so any output is reproducible from its key. Emits SVG and PNG with no build step. The visual language of this site is descended from it.",
@@ -71,6 +75,7 @@ export const projects: Project[] = [
   {
     name: "thai-personal-finance-planner",
     year: "2026",
+    featured: true,
     pitch: "An agent skill that plans Thai personal finances.",
     detail:
       "Models Thai tax filing, SSF/RMF/Thai ESG allowances, and social security tiers, then runs a seven-round interview and emits an HTML dashboard. Bilingual, MIT licensed.",
@@ -79,8 +84,9 @@ export const projects: Project[] = [
     thread: "tooling",
   },
   {
-    name: "fable-dev-skill",
+    name: "dev-fable",
     year: "2026",
+    featured: true,
     pitch: "An orchestrator that delegates dev work to sub-agents.",
     detail:
       "Plans a task, decomposes it, and routes the pieces to reasoning, worker, and explorer agents, synthesising two independent perspectives when a decision is high-stakes.",
@@ -100,32 +106,82 @@ export const projects: Project[] = [
   },
 ];
 
-export type ClientSite = {
+/**
+ * § 04 Work projects — deliberately short, per Ze: "No need to leak too much
+ * about the project — we can show or tell that when I get the interview."
+ * Private codebases get a "Private · ask me" footer instead of a dead link.
+ * The seeded wave still stands in for a screenshot: recognisable as a plate,
+ * unreadable as a spec — the no-leak constraint turned into the aesthetic.
+ */
+export type WorkProject = {
   name: string;
-  href: string;
-  year: string;
-  detail: string;
+  /** "Live" or a date range. */
+  chip: string;
+  /** Cyan chip, mirroring the Current chip in § 03. */
+  live?: boolean;
+  body: string;
+  foot: string;
+  href?: string;
+  /** Wave-still seed — each card gets its own slice of the field. */
+  seed: number;
 };
 
-export const clientSites: ClientSite[] = [
+export const workProjects: WorkProject[] = [
   {
-    name: "PEA Hackathon 2026",
-    href: "https://peahackathon2026.riseaccel.com",
-    year: "2026",
-    detail:
-      "Official site for the Provincial Electricity Authority's hackathon with RISE Accel — energy innovation across grid operation and supply chain.",
+    name: "XOXONA",
+    chip: "Live",
+    live: true,
+    body: "Consumer AI product, Thai-first. I built the retrieval and knowledge system, and shape features with the research team. Agent-directed development, on purpose.",
+    foot: "xoxona.ai ↗",
+    href: "https://xoxona.ai/",
+    seed: 101,
   },
   {
-    name: "NIA AGROWTH",
-    href: "https://agrowth.nia.or.th",
-    year: "2025",
-    detail:
-      "Official site for Thailand's first AgTech accelerator — a twelve-week programme pairing deep-tech agricultural startups with corporate partners.",
+    name: "Radiant / GuildFi",
+    chip: "2021 — 2026",
+    body: "Real-time PC gaming engagement platform, 100k+ players. Sole owner of the quest engine through a full rebuild onto durable workflows.",
+    foot: "Private · ask me",
+    seed: 207,
   },
   {
-    name: "From Chuta",
-    href: "https://fromchuta.com",
-    year: "2025",
-    detail: "A website for a home bakery. Built for my mother's business.",
+    name: "zentry-data",
+    chip: "2025 — 2026",
+    body: "News search, indexing, and the retrieval layer behind a deep-research agent.",
+    foot: "Private · ask me",
+    seed: 311,
   },
+];
+
+/**
+ * Freelance, as one chip row at the foot of § 04 — breadth, not depth
+ * (placement decided: REDESIGN-PLAN.md §8, assumption 2). No href means no
+ * live URL to point at.
+ */
+export const clientChips: { name: string; href?: string }[] = [
+  { name: "PEA Hackathon 2026", href: "https://peahackathon2026.riseaccel.com" },
+  { name: "NIA AGROWTH", href: "https://agrowth.nia.or.th" },
+  { name: "From Chuta", href: "https://fromchuta.com" },
+  { name: "Salak Mabin" },
+  { name: "You in Fantasy World", href: "https://magic.zeze.app" },
+];
+
+/**
+ * § 05's overflow paragraph: the public work that is not one of the four
+ * cards. `note` renders after the name, in parentheses.
+ */
+export const personalOverflow: { name: string; note?: string }[] = [
+  {
+    name: "wenfang",
+    note: "bilingual Chinese-study tool, Astro, strictest pipeline of the set",
+  },
+  {
+    name: "riko-chrome-companion",
+    note: "pixel-art companion extension, three LLM providers, Shadow DOM isolation",
+  },
+  {
+    name: "auto-backtesting",
+    note: "describe a trading strategy in English, an LLM writes and backtests it",
+  },
+  { name: "go-clean-architecture" },
+  { name: "kimi-sub-agents" },
 ];
