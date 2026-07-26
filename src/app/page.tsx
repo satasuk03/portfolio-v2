@@ -4,27 +4,27 @@
  * THESIS: An engineer's record printed as the manual that came in the box. It
  *   refuses the portfolio hero-plus-equal-card-grid: containers are numbered
  *   figures sized by their contents, and the prose points at them by number.
- * OWN-WORLD: Newsprint cream #F2EFE6, soft black ink, three spot inks used as
+ * OWN-WORLD: Near-white paper #FAFAF7, soft black ink, three spot inks used as
  *   whole fields. Heavy keylines, halftone dot fields, FIG-tagged frames. Kanit
  *   poster display, Archivo prose, Azeret Mono on every numeral. No shadow, no
  *   glow, no paper texture — the retro is structural.
  * STORY: Two retrieval systems on two different problem shapes, a platform that
  *   served 100k+ and is now sunset, the code you can actually read, an honest
  *   line about which codebase was agent-directed — then LinkedIn or GitHub.
- * FIRST VIEWPORT: RETRIEVAL knocked out of the paper with a wireframe figure
- *   turning through the letterforms; the sentence completes beneath it; role,
+ * FIRST VIEWPORT: RETRIEVAL knocked out of the paper with the three-ink dither
+ *   wave moving through the letterforms; the sentence completes beneath it; role,
  *   location and availability above; both actions below the fold line on mobile.
  * FORM: The game manual. Brief-pinned by Ze over three rounds (light arcade →
  *   Japanese arcade print → structural intensity), so the direction roll was not
- *   run: a pinned direction beats the roll. Staging: sticky figure chapter,
- *   native scroll, nothing gated.
+ *   run: a pinned direction beats the roll. Staging: native scroll, nothing
+ *   gated.
  */
 
 import Link from "next/link";
 import { ActionLinks, Colophon, Topbar } from "@/components/actions";
-import { FigureChapter } from "@/components/figure/figure-chapter";
 import { Figure, Marker, SectionOpener, SpeedBreak } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
+import { WaveCanvas } from "@/components/wave/wave-field";
 import {
   ArcadeDoor,
   ClientSites,
@@ -42,11 +42,14 @@ export default function Home() {
       <Topbar />
 
       <main>
-        {/* ── the chapter: hero + the lead claim, over one turning figure ── */}
-        <FigureChapter>
-          <Hero />
+        {/* ── the hero: the knockout word over the dither wave ────────────── */}
+        <Hero />
+
+        {/* ── the lead claim — rehomed from the deleted sticky chapter; step 4
+               gives it its permanent place ────────────────────────────────── */}
+        <section className="py-step-8">
           <RetrievalFigures />
-        </FigureChapter>
+        </section>
 
         <SpeedBreak />
 
@@ -171,17 +174,15 @@ function Spread({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * The first viewport, built as three stacked bands. The band structure is what
- * makes the effect work with no JavaScript at all:
+ * The first viewport, built as three stacked bands over one wave canvas:
  *
- *   [ open field ] transparent — the figure is seen plainly
- *   [ the word   ] paper with the word cut out — the figure shows through it
- *   [ sentence   ] opaque paper — occludes the figure
+ *   [ open field ] transparent — the wave is seen plainly
+ *   [ the word   ] paper with the word cut out — the wave shows through it
+ *   [ sentence   ] opaque paper — occludes the wave
  *
- * The canvas is full-bleed behind all three (it belongs to FigureChapter), so
- * the sheet reads as covering the lower half of the page with the headline cut
- * out of its top edge. Scrolling carries the opaque band away and reveals the
- * whole drawing — again, no JS.
+ * The canvas is absolutely positioned behind all three bands, so the sheet
+ * reads as covering the lower half of the hero with the headline cut out of
+ * its top edge. Scrolling simply carries the sheet away — no scroll wiring.
  *
  * Two things had to be deliberate. The word's band is sized by an invisible copy
  * of the word rather than by a viewport percentage: a percentage measured against
@@ -192,12 +193,18 @@ function Spread({ children }: { children: React.ReactNode }) {
 function Hero() {
   return (
     <div className="relative flex min-h-[calc(100svh-var(--topbar-h)-var(--topbar-rule))] flex-col">
+      {/* The dither wave, full-bleed behind all three bands. Absolute, not
+          sticky — the field belongs to the hero alone. */}
+      <WaveCanvas className="absolute inset-0 h-full w-full" />
+
       {/* All the slack sits here, above the word, and this band is transparent so
-          the figure fills it — otherwise a phone opens on several hundred pixels
-          of blank cream, and the drawing is the reason to look. */}
+          the wave fills it — otherwise a phone opens on several hundred pixels
+          of blank paper, and the field is the reason to look. The running head
+          is the one element in this band, so it gets its own paper sheet with a
+          keyline: the field never sits behind copy. */}
       <div className="relative z-10 flex flex-1 flex-col px-step-5 pt-step-6 sm:px-step-7">
         <div className="mx-auto w-full max-w-spread">
-          <p className="caption text-ink-mid">
+          <p className="caption frame-inner inline-block bg-paper px-step-3 py-step-2 text-ink-mid">
             {profile.name}
             <span aria-hidden className="text-halftone">
               {" · "}
@@ -215,7 +222,7 @@ function Hero() {
         </div>
       </div>
 
-      {/* The band the figure is seen through. The invisible word sets its
+      {/* The band the wave is seen through. The invisible word sets its
           height; the SVG overlays it and centres the real glyphs on the same box. */}
       <div className="relative shrink-0">
         <span aria-hidden className="display-giant invisible block">
@@ -251,7 +258,7 @@ function Hero() {
 }
 
 /**
- * The giant word, knocked out of a sheet of paper so the WebGL figure behind it
+ * The giant word, knocked out of a sheet of paper so the dither wave behind it
  * shows through the letterforms only.
  *
  * Implemented as an in-document SVG mask, and the alternatives were tried first:
@@ -259,13 +266,12 @@ function Hero() {
  * `mask-image` data-URI cannot load the webfont. An in-document SVG mask has
  * neither problem — the glyphs are real text in the real Kanit face, SVG masking
  * is SVG 1.1 so support is universal, and the type still reflows with the CSS
- * clamp because no viewBox is involved.
- *
- * The sheet is full-bleed and in normal flow, so scrolling past the hero lifts
- * it off and reveals the whole figure with no JavaScript involved at all.
+ * clamp because no viewBox is involved. The mask is renderer-agnostic: the
+ * canvas behind it was swapped from WebGL to the wave without touching this.
  */
 function KnockoutWord({ word }: { word: string }) {
-  /* Shared by both masks, so the hole and the fill can never drift apart. */
+  /* Shared by both mask and outline, so the hole and the stroke can never
+     drift apart. */
   const glyph = {
     className: "display-giant",
     x: "50%",
@@ -282,24 +288,6 @@ function KnockoutWord({ word }: { word: string }) {
       className="absolute inset-x-0 -bottom-px -top-px h-[calc(100%+2px)] w-full"
     >
       <defs>
-        {/* The manual's stand-in for a photograph, at figure density. */}
-        <pattern
-          id="hero-dots"
-          width="7"
-          height="7"
-          patternUnits="userSpaceOnUse"
-        >
-          <circle cx="3.5" cy="3.5" r="1.4" fill="var(--color-ink)" />
-        </pattern>
-
-        {/* Inside the letters only. */}
-        <mask id="hero-word-only" maskContentUnits="userSpaceOnUse">
-          <rect x="0" y="0" width="100%" height="100%" fill="#000" />
-          <text {...glyph} fill="#fff">
-            {word}
-          </text>
-        </mask>
-
         {/* Everywhere except the letters. */}
         <mask id="hero-knockout" maskContentUnits="userSpaceOnUse">
           <rect x="0" y="0" width="100%" height="100%" fill="#fff" />
@@ -309,19 +297,9 @@ function KnockoutWord({ word }: { word: string }) {
         </mask>
       </defs>
 
-      {/* Halftone inside the letterforms, sitting over the wireframe. Line work
-          alone was too sparse to read as type — the dots give the glyphs mass
-          while the figure still shows through the gaps between them. */}
-      <rect
-        x="0"
-        y="0"
-        width="100%"
-        height="100%"
-        fill="url(#hero-dots)"
-        mask="url(#hero-word-only)"
-      />
-
-      {/* The sheet. */}
+      {/* The sheet. The wave itself fills the letterforms — a dithered field is
+          dense enough to read as type, where the old wireframe needed a halftone
+          overlay to give the glyphs mass. */}
       <rect
         x="0"
         y="0"
