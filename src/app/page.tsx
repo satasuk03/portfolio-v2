@@ -20,18 +20,16 @@
  *   gated.
  */
 
-import Link from "next/link";
 import { ActionLinks, Colophon, Topbar } from "@/components/actions";
-import { Figure, Marker, SectionOpener, SpeedBreak } from "@/components/manual";
+import { Figure, SectionOpener, SpeedBreak } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
 import { WaveCanvas } from "@/components/wave/wave-field";
 import {
   ArcadeDoor,
   ClientSites,
+  ExperienceRecord,
   ProjectIndex,
   RetrievalFigures,
-  ScalePanel,
-  ServiceRecord,
 } from "@/components/sections";
 import { method } from "@/content/retrieval";
 import { hero, home, profile } from "@/content/profile";
@@ -45,33 +43,28 @@ export default function Home() {
         {/* ── the hero: the knockout word over the dither wave ────────────── */}
         <Hero />
 
-        {/* ── the lead claim — rehomed from the deleted sticky chapter; step 4
-               gives it its permanent place ────────────────────────────────── */}
-        <section className="py-step-8">
-          <RetrievalFigures />
-        </section>
-
         <SpeedBreak />
 
-        {/* ── the depth under the lead claim ─────────────────────────────── */}
+        {/* ── experience, grouped by company ─────────────────────────────── */}
         <Spread>
           <SectionOpener
-            id="scale"
+            id="experience"
             seq="§ 02"
-            title="The platform underneath"
-            lede="Before the retrieval work: four and a half years in one long-lived codebase, and sole ownership of the engine at the middle of it. The product is dead, so these figures are the evidence rather than a link."
+            title="Work experience"
+            lede="Grouped by company, newest first. Three companies, four roles, 2019 to now."
           />
-          {/* Home numbering: 00 hero · 01–02 retrieval · 03 scale · 04 method. */}
-          <ScalePanel tag="03" />
+          <ExperienceRecord />
         </Spread>
 
+        {/* ── the retrieval work, in detail — rehomed from the deleted sticky
+               chapter; it is the depth under the two Zentry retrieval roles ── */}
         <Spread>
           <SectionOpener
             seq="§ 03"
-            title="Service record"
-            lede="Newest first. Radiant carries the sunset mark because it is over; only XOXONA is live."
+            title="The retrieval work"
+            lede="Two retrieval systems on two different problem shapes. Both are private employer codebases, so these figures are the evidence rather than a link."
           />
-          <ServiceRecord />
+          <RetrievalFigures />
         </Spread>
 
         {/* ── the honest bit ─────────────────────────────────────────────── */}
@@ -122,35 +115,6 @@ export default function Home() {
         <Spread>
           <SectionOpener seq="§ 06" title="Shipped for other people" />
           <ClientSites />
-        </Spread>
-
-        {/* ── the long version ───────────────────────────────────────────── */}
-        <Spread>
-          <Reveal>
-            <div className="frame flex flex-wrap items-center justify-between gap-step-5 bg-paper px-step-5 py-step-6 sm:px-step-7">
-              <div>
-                <p className="title text-ink">
-                  Three incidents, written up in full.
-                </p>
-                <p className="measure mt-step-3 body-copy text-ink-mid">
-                  What broke, how it was diagnosed, and what changed as a result
-                  — including{" "}
-                  <Marker>
-                    the singleton that leaked a connection pool across every
-                    worker pod
-                  </Marker>
-                  .
-                </p>
-              </div>
-              <Link
-                href="/log"
-                className="caption inline-flex items-center gap-step-2 bg-ink px-step-5 py-step-3 text-paper transition-colors duration-150 hover:bg-print-cyan"
-              >
-                Open the log
-                <span aria-hidden>→</span>
-              </Link>
-            </div>
-          </Reveal>
         </Spread>
 
         {/* ── the door ───────────────────────────────────────────────────── */}

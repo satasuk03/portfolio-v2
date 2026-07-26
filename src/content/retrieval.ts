@@ -96,18 +96,3 @@ export const method = {
   defensible: "Every architectural decision in it.",
   refused: "That I wrote it line by line.",
 } as const;
-
-/**
- * The method claim, made auditable at a glance rather than left to inference.
- * "Directed" means specified and reviewed by Ze with an agent typing most of it.
- * This site is on the list, which is the point — it would be an odd thing to
- * hide on a page that makes an argument about honest provenance.
- */
-export const provenance: { name: string; mode: "hand" | "directed" }[] = [
-  { name: "Radiant / GuildFi", mode: "hand" },
-  { name: "zentry-data", mode: "hand" },
-  { name: "Blockfint", mode: "hand" },
-  { name: "Public repos", mode: "hand" },
-  { name: "XOXONA", mode: "directed" },
-  { name: "This site", mode: "directed" },
-];

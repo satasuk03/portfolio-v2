@@ -52,12 +52,6 @@ export function Topbar() {
 
         <nav className="flex shrink-0 items-center gap-step-3 sm:gap-step-4">
           <Link
-            href="/log"
-            className="caption text-ink transition-colors duration-150 hover:text-cyan-deep"
-          >
-            Log
-          </Link>
-          <Link
             href="/arcade"
             className="caption text-ink transition-colors duration-150 hover:text-cyan-deep"
           >

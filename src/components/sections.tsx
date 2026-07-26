@@ -1,25 +1,85 @@
 import Link from "next/link";
-import { Figure, StackRow, StateChip } from "@/components/manual";
+import { Figure, StackRow } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
-import { home, secondaryReadouts } from "@/content/profile";
+import { companies } from "@/content/experience";
 import { clientSites, projects } from "@/content/projects";
 import { retrievalSystems } from "@/content/retrieval";
-import { systemsNewestFirst } from "@/content/systems";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE LEAD — retrieval. Emphasis decided with Ze: AI leads, platform is depth.
-   These figures sit inside the sticky chapter, so they carry a paper fill and
-   occupy the left of the spread with the turning wireframe visible beside them.
+   WORK EXPERIENCE — grouped by company, per Ze's brief (REDESIGN-PLAN.md §4).
+   One figure per company with roles nested inside; newest company first,
+   newest role first within. Numbers live in the prose, not in a stat panel —
+   the four-readout grid was cut in the redesign.
+   ────────────────────────────────────────────────────────────────────────── */
+
+export function ExperienceRecord() {
+  return (
+    <div className="flex flex-col gap-step-7">
+      {companies.map((company, i) => (
+        <Reveal key={company.id}>
+          <Figure
+            tag={`03.${i + 1}`}
+            label={company.name}
+            caption={`${company.name} · ${company.meta} · ${company.when}`}
+          >
+            <div className="grid gap-step-5 lg:grid-cols-[13rem_1fr] lg:gap-step-7">
+              <div>
+                <p
+                  className={`readout-sm ${
+                    company.current ? "text-cyan-deep" : "text-ink-mid"
+                  }`}
+                >
+                  {company.when}
+                </p>
+                <h3 className="title-sm mt-step-2 text-ink">{company.name}</h3>
+                <p className="caption mt-step-2 text-ink-mid">{company.meta}</p>
+                {company.current && (
+                  /* Single-selection by contract — see experience.ts. */
+                  <span className="figure-tag mt-step-3 inline-block bg-print-cyan px-step-2 py-[0.2rem] text-paper">
+                    Current
+                  </span>
+                )}
+              </div>
+
+              <div>
+                {company.roles.map((role, j) => (
+                  <div
+                    key={role.title}
+                    className={
+                      j > 0 ? "mt-step-5 border-t border-halftone pt-step-5" : ""
+                    }
+                  >
+                    <div className="flex flex-wrap items-baseline justify-between gap-step-3">
+                      <h4 className="title-sm text-ink">{role.title}</h4>
+                      <span className="readout-sm text-ink-mid">
+                        {role.when}
+                      </span>
+                    </div>
+                    <p className="measure mt-step-3 body-copy text-ink-mid">
+                      {role.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Figure>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE RETRIEVAL WORK — the site's strongest technical material. Rehomed out
+   of the deleted sticky chapter (REDESIGN-PLAN.md §3): it now follows the
+   experience figures, as the depth underneath the two Zentry retrieval roles.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function RetrievalFigures() {
   return (
-    <div className="mx-auto max-w-spread px-step-5 sm:px-step-7">
+    <div className="flex flex-col gap-step-7">
       {retrievalSystems.map((system) => (
-        <Reveal
-          key={system.seq}
-          className="mb-step-8 lg:w-[62%] lg:last:ml-auto"
-        >
+        <Reveal key={system.seq}>
           <Figure
             tag={system.seq}
             label={system.product}
@@ -54,107 +114,6 @@ export function RetrievalFigures() {
         </Reveal>
       ))}
     </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   THE SCALE PANEL — Radiant, past tense throughout. Spot red carries the sunset,
-   because The Red Means Over Rule gives it exactly one job.
-   ────────────────────────────────────────────────────────────────────────── */
-
-/**
- * Shared by `/` and `/log`, so the figure number is a required prop rather than
- * a hardcoded string. Hardcoding it produced two FIG. 03 on the same page, which
- * breaks the one device the whole design leans on — prose pointing at a figure
- * by number.
- */
-export function ScalePanel({ tag }: { tag: string }) {
-  return (
-    <Reveal>
-      <Figure tag={tag} label="Radiant, at peak" caption={home.scaleCaption}>
-        <dl className="grid grid-cols-2 gap-x-step-5 gap-y-step-6 lg:grid-cols-4">
-          {home.stats.map((stat) => (
-            <div key={stat.label}>
-              <dd
-                className={`readout ${
-                  stat.attention ? "text-magenta" : "text-ink"
-                }`}
-              >
-                {stat.value}
-                {stat.unit && (
-                  <span className="text-[0.55em] text-ink-mid">
-                    {stat.unit}
-                  </span>
-                )}
-              </dd>
-              <dt className="caption mt-step-3 text-ink-mid">{stat.label}</dt>
-            </div>
-          ))}
-        </dl>
-
-        <ul className="mt-step-7 grid gap-x-step-5 gap-y-step-3 border-t-2 border-ink pt-step-4 sm:grid-cols-2">
-          {secondaryReadouts.map((item) => (
-            <li
-              key={item.label}
-              className="flex items-baseline justify-between gap-step-3 border-b border-halftone pb-step-2"
-            >
-              <span className="readout-sm text-ink">
-                {item.label}
-                {item.note && (
-                  <span className="text-ink-mid"> — {item.note}</span>
-                )}
-              </span>
-              <span className="readout-sm font-bold text-ink">
-                {item.value}
-                {item.unit}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Figure>
-    </Reveal>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   THE SERVICE RECORD — newest first. No lead title appears here; see the note in
-   src/content/profile.ts.
-   ────────────────────────────────────────────────────────────────────────── */
-
-export function ServiceRecord() {
-  return (
-    <ol className="border-t-2 border-ink">
-      {systemsNewestFirst.map((system, i) => (
-        <Reveal
-          as="li"
-          key={system.seq}
-          delay={i * 60}
-          className="border-b-2 border-ink"
-        >
-          <div className="grid gap-step-4 py-step-6 lg:grid-cols-[13rem_1fr] lg:gap-step-7">
-            <div>
-              <div className="flex items-center gap-step-3">
-                <span className="figure-tag text-ink-mid" aria-hidden>
-                  {system.seq}
-                </span>
-                <StateChip state={system.state} />
-              </div>
-              <p className="readout-sm mt-step-3 text-ink-mid">{system.span}</p>
-              <p className="readout-sm text-ink-mid">{system.org}</p>
-            </div>
-
-            <div>
-              <h3 className="title text-ink">{system.name}</h3>
-              <p className="caption mt-step-2 text-cyan-deep">{system.role}</p>
-              <p className="measure mt-step-4 body-copy text-ink-mid">
-                {system.summary}
-              </p>
-              <StackRow items={system.stack} />
-            </div>
-          </div>
-        </Reveal>
-      ))}
-    </ol>
   );
 }
 
@@ -256,9 +215,8 @@ export function ClientSites() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE ARCADE DOOR — the one place the site goes dark, and it should read as a
-   door rather than a link. Paying for the inversion with a metaphor is the whole
-   justification for it existing at all.
+   THE ARCADE DOOR — recolored into the main palette in step 7 of the redesign;
+   until then it keeps its own dark-room tokens.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function ArcadeDoor() {
