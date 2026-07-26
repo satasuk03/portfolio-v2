@@ -10,7 +10,6 @@
  */
 
 import type { ReactNode } from "react";
-import { lampCopy, type LampState } from "@/content/systems";
 
 type FigureProps = {
   /** Rendered as "FIG. 01". Referenced by prose, so it must be stable. */
@@ -100,38 +99,10 @@ export function SectionOpener({
   );
 }
 
-const STATE_STYLE: Record<LampState, string> = {
-  /* The Red Means Over Rule + The Ink Fill Rule — a state is a filled field
-     with type knocked out of it, never a coloured hairline. */
-  live: "bg-print-cyan text-paper",
-  sunset: "bg-magenta text-paper",
-  closed: "bg-halftone text-ink",
-};
-
-export function StateChip({ state }: { state: LampState }) {
-  return (
-    <span
-      className={`figure-tag inline-block px-step-2 py-[0.2rem] ${STATE_STYLE[state]}`}
-    >
-      {lampCopy[state]}
-    </span>
-  );
-}
-
 /** The Yellow Is A Highlighter Rule — a marker stroke behind ink type. */
 export function Marker({ children }: { children: ReactNode }) {
   return (
     <mark className="bg-marker-yellow px-[0.15em] text-ink">{children}</mark>
-  );
-}
-
-/** Diagonal speed stripes at a section boundary. Never behind prose. */
-export function SpeedBreak({ className = "" }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={`stripes h-step-4 border-y-2 border-ink opacity-90 ${className}`}
-    />
   );
 }
 

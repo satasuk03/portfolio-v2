@@ -220,23 +220,6 @@
     background-size: 6px 6px;
   }
 
-  /* Diagonal speed stripes. Section boundaries only — never behind prose. */
-  .stripes {
-    background-image: repeating-linear-gradient(
-      45deg,
-      var(--color-ink) 0 3px,
-      transparent 3px 9px
-    );
-  }
-
-  .stripes-paper {
-    background-image: repeating-linear-gradient(
-      45deg,
-      var(--color-paper) 0 3px,
-      transparent 3px 9px
-    );
-  }
-
   /* ── figure frames ────────────────────────────────────────────────────── */
 
   .frame {
