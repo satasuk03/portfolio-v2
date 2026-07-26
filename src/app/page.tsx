@@ -22,6 +22,7 @@
  */
 
 import { ActionLinks, Colophon } from "@/components/actions";
+import { HeroPlate } from "@/components/hero-plate";
 import { Figure, SectionOpener } from "@/components/manual";
 import { SectionNav } from "@/components/nav/section-nav";
 import { Reveal } from "@/components/reveal";
@@ -37,7 +38,7 @@ import {
   WorkProjectCards,
 } from "@/components/sections";
 import { method } from "@/content/retrieval";
-import { closer, hero, heroPlate, home, profile } from "@/content/profile";
+import { closer, hero, home, profile } from "@/content/profile";
 
 export default function Home() {
   return (
@@ -270,42 +271,10 @@ function Hero() {
             <ActionLinks className="mt-step-5" />
           </div>
 
-          {/* The raw photograph — full tone, in a keylined plate. Not dithered:
-              the dither is the background's job now. */}
-          <figure className="frame relative bg-board">
-            <div className="absolute -top-px left-0 flex translate-y-[-50%] items-center gap-step-2 pl-step-3">
-              <span className="figure-tag bg-ink px-step-2 py-[0.2rem] text-paper">
-                Fig. 00
-              </span>
-              <span className="caption bg-paper px-step-2 text-ink-mid">
-                {heroPlate.label}
-              </span>
-            </div>
-            <img
-              src={heroPlate.src}
-              alt={heroPlate.alt}
-              className="block w-full"
-            />
-            <dl className="grid grid-cols-2 border-t-[3px] border-ink bg-paper">
-              {heroPlate.cells.map((cell, i) => (
-                <div
-                  key={cell.term}
-                  className={`px-step-3 py-step-3 ${
-                    i > 0 ? "border-l-2 border-ink" : ""
-                  }`}
-                >
-                  <dt className="caption text-ink-mid">{cell.term}</dt>
-                  <dd
-                    className={`readout-sm mt-step-1 font-bold ${
-                      cell.accent ? "text-cyan-deep" : "text-ink"
-                    }`}
-                  >
-                    {cell.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </figure>
+          {/* The raw photograph — full tone, in a keylined plate, cut to the
+              left column's height on desktop. Click it and it re-plates:
+              HeroPlate carries the expand-and-dither toy. */}
+          <HeroPlate />
         </div>
       </div>
     </div>

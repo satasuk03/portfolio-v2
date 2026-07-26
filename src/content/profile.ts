@@ -22,10 +22,10 @@ export const profile = {
  * is what a screen reader gets, since the knockout is decorative SVG.
  */
 export const hero = {
-  word: "Retrieval",
+  word: "SATASUK",
   tail: "— systems for news, research and long-form lore.",
   spoken:
-    "Satasuk Viparksinlapin, AI Engineer. Retrieval systems for news, research and long-form lore.",
+    "Satasuk Viparksinlapin, AI Engineer — systems for news, research and long-form lore.",
   /* Unnumbered — the photo plate carries Fig. 00, and one figure number may
      only ever point at one thing. */
   figureCaption: "The dither wave, drifting",
@@ -62,6 +62,10 @@ export const heroPlate = {
     { term: "Based", value: "Bangkok · UTC+7", accent: false },
     { term: "Building", value: "XOXONA", accent: true },
   ],
+  lightbox: {
+    enlarge: "Enlarge",
+    close: "Close",
+  },
 } as const;
 
 /** The closer. An invitation to ask, then LinkedIn and GitHub. Nothing else. */

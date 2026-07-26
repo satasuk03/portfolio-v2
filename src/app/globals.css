@@ -99,7 +99,7 @@
        Crop Rule wants a printed headline, not a word cut in half. */
     font-size: clamp(3rem, 15.5vw, 16rem);
     line-height: 0.82;
-    letter-spacing: -0.045em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
   }
 
@@ -270,8 +270,8 @@
   mask-repeat: repeat;
   opacity: calc(0.3 + 0.7 * var(--reveal));
   transition:
-    --reveal 900ms var(--ease-print),
-    opacity 900ms var(--ease-print);
+    --reveal 1600ms var(--ease-print),
+    opacity 1600ms var(--ease-print);
 }
 
 /* Fully inked flattens the mask to a solid one rather than removing it.
