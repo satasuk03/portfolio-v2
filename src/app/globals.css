@@ -145,6 +145,20 @@
     }
   }
 
+  /* A quoted maxim, set one notch under `.title`. Deliberately NOT uppercase:
+     The Uppercase Ceiling Rule gives caps to display, titles, captions and
+     tags, and a quotation is prose — someone else's sentence, printed as a
+     sentence. It takes the display face for weight rather than the body face
+     at a size Archivo does not have a step for. */
+  .pull-quote {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
   .caption {
     font-family: var(--font-body);
     font-size: 0.75rem;

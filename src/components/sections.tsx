@@ -1,16 +1,10 @@
-import { Figure, StackRow } from "@/components/manual";
+import { Figure } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
 import { WaveCanvas } from "@/components/wave/wave-field";
 import { companies } from "@/content/experience";
 import { hobbies } from "@/content/hobbies";
-import { about } from "@/content/profile";
-import {
-  clientChips,
-  personalOverflow,
-  projects,
-  workProjects,
-} from "@/content/projects";
-import { retrievalSystems } from "@/content/retrieval";
+import { about, homeStats } from "@/content/profile";
+import { clientChips, projects, workProjects } from "@/content/projects";
 import { skillGroups } from "@/content/skills";
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -22,18 +16,83 @@ export function AboutFigure() {
   return (
     <Reveal>
       <Figure tag="01" label="The operator">
-        <div className="measure flex flex-col gap-step-4">
-          {about.paragraphs.map((para, i) => (
-            <p
-              key={para.slice(0, 24)}
-              className={i === 0 ? "title-sm text-ink" : "body-copy text-ink-mid"}
-            >
-              {para}
-            </p>
-          ))}
+        {/* Two columns from `lg`: prose capped at its 68ch measure, and the
+            readout stack occupying the space that measure leaves empty inside
+            a full-spread frame. Below `lg` the stack drops under the prose as
+            a 2×2 block. */}
+        <div className="grid gap-step-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-start lg:gap-step-7">
+          <div>
+            <div className="measure flex flex-col gap-step-4">
+              {about.paragraphs.map((para, i) => (
+                <p
+                  key={para.slice(0, 24)}
+                  className={
+                    i === 0 ? "title-sm text-ink" : "body-copy text-ink-mid"
+                  }
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
+
+            {/* The epigraph closes the figure: the paragraph above states the
+                belief in his own words, this cites where it comes from. A 2px
+                ink rule separates them — the same panel-edge weight used
+                elsewhere, so the quote reads as a distinct register rather
+                than a fifth paragraph. */}
+            <blockquote className="measure mt-step-6 border-t-2 border-ink pt-step-5">
+              <p className="pull-quote text-ink">
+                &ldquo;{about.epigraph.text}&rdquo;
+              </p>
+              <cite className="figure-tag mt-step-3 block not-italic text-ink-mid">
+                — {about.epigraph.attribution}
+              </cite>
+            </blockquote>
+          </div>
+
+          <ScaleStack />
         </div>
       </Figure>
     </Reveal>
+  );
+}
+
+/**
+ * The scale readouts beside the About prose.
+ *
+ * Not "cards" in the elevated sense — there is no elevation on paper. The
+ * separation is pure keyline: the grid is ink-coloured with a 2px gap, and
+ * each cell is board, so the ground shows through as an exact 2px ink rule
+ * between cells in both the 2-column and 1-column arrangements. One border
+ * declaration, no last:border-0 special-casing, and it cannot desynchronise
+ * from the frame's own rule weight.
+ *
+ * Source order is dt → dd for assistive tech; `flex-col-reverse` puts the
+ * numeral on top visually, where it scans.
+ */
+function ScaleStack() {
+  return (
+    <dl className="grid grid-cols-2 gap-[2px] border-2 border-ink bg-ink lg:grid-cols-1">
+      {homeStats.map((stat) => (
+        <div
+          key={stat.label}
+          className="flex flex-col-reverse gap-step-1 bg-board px-step-4 py-step-4"
+        >
+          {/* `homeStats` is `as const`, so it types as a union and only two of
+              the four members carry `note` — narrow, don't index. The guard is
+              also why a noteless stat gets no empty line under its label. */}
+          <dt className="caption text-ink-mid">
+            {stat.label}
+            {"note" in stat && (
+              <span className="readout-sm mt-step-1 block normal-case tracking-normal text-ink-mid">
+                {stat.note}
+              </span>
+            )}
+          </dt>
+          <dd className="readout text-ink">{stat.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -126,6 +185,19 @@ export function ExperienceRecord() {
                     <p className="measure mt-step-3 body-copy text-ink-mid">
                       {role.body}
                     </p>
+                    {role.href && (
+                      /* Same link treatment as the § 04 card footers. Sits on
+                         its own line — the title row is justify-between and a
+                         third child wraps badly. */
+                      <a
+                        href={role.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="figure-tag mt-step-3 inline-block text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
+                      >
+                        {role.hrefLabel ?? role.href}
+                      </a>
+                    )}
                   </div>
                 ))}
               </div>
@@ -149,14 +221,30 @@ export function WorkProjectCards() {
       {workProjects.map((project, i) => (
         <Reveal key={project.name} delay={i * 60} className="flex">
           <article className="frame flex flex-1 flex-col bg-paper">
-            <div className="h-[6.5rem] shrink-0 overflow-hidden border-b-[3px] border-ink">
-              <WaveCanvas
-                still
-                seed={project.seed}
-                cell={6}
-                gamma={2.0}
-                className="block h-full w-full"
-              />
+            {/* One band, one aspect ratio, whichever fills it — a cover and a
+                wave still must reserve identical space or the grid's rows
+                jump as the images decode. The 3px keyline is what makes a
+                full-tone plate read as printed rather than as a screen; it is
+                the same treatment Fig. 00 gives the photograph. */}
+            <div className="aspect-[16/9] shrink-0 overflow-hidden border-b-[3px] border-ink">
+              {project.cover ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={project.cover}
+                  alt={project.coverAlt ?? ""}
+                  loading="lazy"
+                  decoding="async"
+                  className="block h-full w-full object-cover"
+                />
+              ) : (
+                <WaveCanvas
+                  still
+                  seed={project.seed}
+                  cell={6}
+                  gamma={2.0}
+                  className="block h-full w-full"
+                />
+              )}
             </div>
             <div className="flex-1 px-step-4 py-step-4">
               <span
@@ -197,54 +285,6 @@ export function WorkProjectCards() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THE RETRIEVAL WORK, IN DETAIL — the depth under two of the three cards
-   above, and the site's strongest technical material. Rehomed out of the
-   deleted sticky chapter into § 04 (REDESIGN-PLAN.md §3).
-   ────────────────────────────────────────────────────────────────────────── */
-
-export function RetrievalFigures() {
-  return (
-    <div className="flex flex-col gap-step-7">
-      {retrievalSystems.map((system) => (
-        <Reveal key={system.seq}>
-          <Figure
-            tag={system.seq}
-            label={system.product}
-            caption={`${system.product} · ${system.span} · private codebase, not linkable`}
-          >
-            <div className="flex flex-wrap items-baseline justify-between gap-step-3">
-              <h3 className="title text-ink">{system.name}</h3>
-              <span className="readout-sm text-ink-mid">{system.span}</span>
-            </div>
-
-            {/* The line a thirty-second skimmer leaves with. */}
-            <p className="title-sm mt-step-3 text-cyan-deep">{system.brief}</p>
-
-            <p className="mt-step-4 body-copy text-ink">{system.problem}</p>
-
-            <dl className="mt-step-5 border-t-2 border-ink pt-step-4">
-              <dt className="caption text-ink-mid">What I built</dt>
-              <dd className="mt-step-2 body-copy text-ink-mid">
-                {system.built}
-              </dd>
-
-              <dt className="caption mt-step-5 text-ink-mid">
-                Why it is not the other one
-              </dt>
-              <dd className="mt-step-2 body-copy text-ink-mid">
-                {system.distinct}
-              </dd>
-            </dl>
-
-            <StackRow items={system.stack} />
-          </Figure>
-        </Reveal>
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
    § 04's foot — freelance as one chip row. Breadth, not depth; the ruled
    client list with per-site copy was cut with the redesign.
    ────────────────────────────────────────────────────────────────────────── */
@@ -252,7 +292,10 @@ export function RetrievalFigures() {
 export function ClientChips() {
   return (
     <Reveal>
-      <Figure tag="04.7" label="Shipped for clients" tone="board">
+      {/* 04.1, not the old 04.7: Figs. 04.4–04.6 were cut and the cards above
+          are not figures, so this is § 04's first and only numbered frame.
+          Safe to renumber — nothing in the tree points at an 04.x. */}
+      <Figure tag="04.1" label="Shipped for clients" tone="board">
         <p className="body-copy text-ink-mid">
           Freelance and client work, shown as a row rather than cards —
           they&rsquo;re breadth, not depth.
@@ -286,7 +329,7 @@ export function ClientChips() {
    § 05 PERSONAL PROJECTS — the load-bearing section for craft. Public, solo,
    hand-built, and the only place a reader can read Ze's actual code; that is
    precisely what lets the XOXONA leverage story be told without defensiveness.
-   Four cards, then the overflow as one paragraph.
+   Five cards, and nothing else — the overflow paragraph was cut.
    ────────────────────────────────────────────────────────────────────────── */
 
 const THREAD_CHIP: Record<string, string> = {
@@ -302,48 +345,48 @@ const THREAD_LABEL: Record<string, string> = {
 export function PersonalProjects() {
   const featured = projects.filter((p) => p.featured);
   return (
-    <div>
-      <div className="grid gap-step-5 sm:grid-cols-2">
-        {featured.map((project, i) => (
-          <Reveal key={project.name} delay={i * 60} className="flex">
-            <article className="frame flex flex-1 flex-col bg-paper">
-              <div className="flex-1 px-step-4 py-step-4">
-                <span
-                  className={`figure-tag inline-block px-step-2 py-[0.2rem] ${THREAD_CHIP[project.thread]}`}
-                >
-                  {THREAD_LABEL[project.thread]}
-                </span>
-                <h3 className="title-sm mt-step-3 text-ink">{project.name}</h3>
-                <p className="mt-step-2 text-sm leading-relaxed text-ink-mid">
-                  {project.detail}
-                </p>
-              </div>
-              <footer className="border-t-2 border-ink px-step-4 py-step-2">
+    <div className="grid gap-step-5 sm:grid-cols-2">
+      {featured.map((project, i) => (
+        <Reveal key={project.name} delay={i * 60} className="flex">
+          <article className="frame flex flex-1 flex-col bg-paper">
+            <div className="flex-1 px-step-4 py-step-4">
+              <span
+                className={`figure-tag inline-block px-step-2 py-[0.2rem] ${THREAD_CHIP[project.thread]}`}
+              >
+                {THREAD_LABEL[project.thread]}
+              </span>
+              <h3 className="title-sm mt-step-3 text-ink">{project.name}</h3>
+              <p className="mt-step-2 text-sm leading-relaxed text-ink-mid">
+                {project.detail}
+              </p>
+            </div>
+            {/* Repo first: § 05 exists so the code can be read, and the
+                running deployment is the second reason to click, not the
+                first. Wraps rather than truncates — a long host on a narrow
+                card takes a second line. */}
+            <footer className="flex flex-wrap gap-x-step-4 gap-y-step-1 border-t-2 border-ink px-step-4 py-step-2">
+              <a
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="figure-tag text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
+              >
+                github ↗
+              </a>
+              {project.live && (
                 <a
-                  href={project.href}
+                  href={project.live}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="figure-tag text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
+                  className="figure-tag text-ink-mid transition-colors duration-150 hover:text-print-cyan"
                 >
-                  github ↗
+                  {project.liveLabel ?? "live ↗"}
                 </a>
-              </footer>
-            </article>
-          </Reveal>
-        ))}
-      </div>
-
-      <p className="measure mt-step-6 body-copy text-ink-mid">
-        Also public:{" "}
-        {personalOverflow.map((item, i) => (
-          <span key={item.name}>
-            {i > 0 && ", "}
-            <strong className="font-semibold text-ink">{item.name}</strong>
-            {item.note && <> ({item.note})</>}
-          </span>
-        ))}
-        .
-      </p>
+              )}
+            </footer>
+          </article>
+        </Reveal>
+      ))}
     </div>
   );
 }

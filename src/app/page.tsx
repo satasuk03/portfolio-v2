@@ -23,7 +23,7 @@
 
 import { ActionLinks, Colophon } from "@/components/actions";
 import { HeroPlate } from "@/components/hero-plate";
-import { Figure, SectionOpener } from "@/components/manual";
+import { SectionOpener } from "@/components/manual";
 import { SectionNav } from "@/components/nav/section-nav";
 import { Reveal } from "@/components/reveal";
 import { WaveCanvas, WaveRamp } from "@/components/wave/wave-field";
@@ -33,11 +33,9 @@ import {
   ExperienceRecord,
   OffTheClock,
   PersonalProjects,
-  RetrievalFigures,
   SkillsTable,
   WorkProjectCards,
 } from "@/components/sections";
-import { method } from "@/content/retrieval";
 import { closer, hero, home, profile } from "@/content/profile";
 
 export default function Home() {
@@ -61,6 +59,8 @@ export default function Home() {
           />
           <AboutFigure />
         </Spread>
+
+        <WaveRamp seed={19} />
 
         {/* ── 02 · skills ────────────────────────────────────────────────── */}
         <Spread>
@@ -94,45 +94,9 @@ export default function Home() {
             id="work"
             seq="§ 04"
             title="Work projects"
-            lede="Three private codebases, kept short on purpose — the detail is interview material, not website copy. The retrieval work gets its figures below the cards."
+            lede="Three private codebases, kept short on purpose — the detail is interview material, not website copy."
           />
           <WorkProjectCards />
-          <div className="mt-step-7">
-            <RetrievalFigures />
-          </div>
-          <div className="mt-step-7">
-            {/* The honest bit — PRODUCT.md Principle 4: the AI-leveraged work
-                is labelled, because the credibility of both halves depends on
-                not blurring them. */}
-            <Reveal>
-              <Figure tag="04.6" label="Method" tone="board">
-                <h2 className="title text-ink">{method.title}</h2>
-                <div className="measure mt-step-4 flex flex-col gap-step-4 body-copy text-ink-mid">
-                  {method.body.map((para) => (
-                    <p key={para.slice(0, 24)}>{para}</p>
-                  ))}
-                </div>
-                <dl className="mt-step-6 grid gap-step-5 border-t-2 border-ink pt-step-4 sm:grid-cols-2">
-                  <div>
-                    <dt className="caption text-cyan-deep">
-                      What I can defend in an interview
-                    </dt>
-                    <dd className="title-sm mt-step-2 text-ink">
-                      {method.defensible}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="caption text-magenta">
-                      What I will not claim
-                    </dt>
-                    <dd className="title-sm mt-step-2 text-ink">
-                      {method.refused}
-                    </dd>
-                  </div>
-                </dl>
-              </Figure>
-            </Reveal>
-          </div>
           <div className="mt-step-7">
             <ClientChips />
           </div>
@@ -179,10 +143,16 @@ export default function Home() {
   );
 }
 
-/** One column of the spread, at the shared rhythm. */
+/**
+ * One column of the spread, at the shared rhythm.
+ *
+ * Both axes step down on mobile. Two adjacent Spreads stack their padding, so a
+ * flat step-8 puts 13rem of paper between sections — fine at a boundary that
+ * carries a WaveRamp, half a viewport of nothing at § 04 → § 05, which doesn't.
+ */
 function Spread({ children }: { children: React.ReactNode }) {
   return (
-    <section className="mx-auto max-w-spread px-step-5 py-step-8 sm:px-step-7">
+    <section className="mx-auto max-w-spread px-step-5 py-step-7 sm:px-step-7 sm:py-step-8">
       {children}
     </section>
   );
