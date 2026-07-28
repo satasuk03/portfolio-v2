@@ -69,7 +69,7 @@ or having both hand-built and AI-directed evidence side by side.
 - English-only. No i18n layer for v1.
 
 **Editorial — non-negotiable**
-- **Contact is LinkedIn + GitHub only.** No phone, no email address, no contact form.
+- **Contact is LinkedIn + GitHub only.** No phone, no email address, no contact form. Instagram (`@zezethewanderer`) appears alongside them as a social link — added 2026-07-28 on Ze's instruction; it is not a contact channel.
 - **No commit statistics.** Scope is described in words ("one of three core engineers", "sole owner of the quest engine"). Nothing numeric lifted from private employer repos.
 - **Internal detail is genericized.** Radiant, GuildFi, Zentry, XOXONA, and zentry-data may be named; internal function names, DB table names, service/module names, task-queue names, and the monorepo tree may not.
 - **Radiant is past tense throughout** — "served 100k+ users", never "serves".

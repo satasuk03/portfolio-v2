@@ -18,6 +18,9 @@ export const profile = {
   links: {
     linkedin: "https://www.linkedin.com/in/satasukVip",
     github: "https://github.com/satasuk03",
+    /* Social, not a contact channel — added 2026-07-28 on Ze's instruction.
+       The contact rule (LinkedIn + GitHub only, no email/phone/form) stands. */
+    instagram: "https://www.instagram.com/zezethewanderer/",
   },
 } as const;
 
@@ -120,7 +123,7 @@ export const heroPlate = {
   },
 } as const;
 
-/** The closer. An invitation to ask, then LinkedIn and GitHub. Nothing else. */
+/** The closer. An invitation to ask, then LinkedIn, GitHub and Instagram. */
 export const closer = {
   title: "Hiring, or just curious?",
   body: "I'm open to remote roles. The fastest way to find out whether I'm useful to you is to ask me about one of the projects above — I'll tell you what actually happened.",

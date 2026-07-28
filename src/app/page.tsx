@@ -126,7 +126,7 @@ export default function Home() {
           <OffTheClock />
         </Spread>
 
-        {/* ── the closer: an invitation, then LinkedIn and GitHub ────────── */}
+        {/* ── the closer: an invitation, then LinkedIn, GitHub and Instagram ── */}
         <Spread>
           <Reveal>
             <h2 className="display text-ink">{closer.title}</h2>

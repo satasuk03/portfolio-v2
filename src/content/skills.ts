@@ -28,15 +28,18 @@ export const skillGroups: SkillGroup[] = [
       "OpenAI",
       "LangChain",
       "LangGraph",
+      "LangSmith",
+      "MCP",
       "Vercel AI SDK",
       "RAG / retrieval",
       "Agent tooling",
       "Claude Agent Skills",
+      "Embedding",
     ],
   },
   {
     key: "Languages",
-    items: ["TypeScript", "JavaScript", "Python", "Go", "SQL", "Solidity"],
+    items: ["TypeScript", "JavaScript", "Python", "SQL"],
   },
   {
     key: "Backend",
@@ -61,7 +64,13 @@ export const skillGroups: SkillGroup[] = [
   },
   {
     key: "Frontend",
-    items: ["Next.js", "React 19", "Tailwind v4", "shadcn/ui", "TanStack Query"],
+    items: [
+      "Next.js",
+      "React 19",
+      "Tailwind v4",
+      "shadcn/ui",
+      "TanStack Query",
+    ],
   },
   {
     key: "Infra & ops",
@@ -72,16 +81,11 @@ export const skillGroups: SkillGroup[] = [
       "GitHub Actions",
       "Datadog",
       "OpenTelemetry",
+      "PostHog",
     ],
   },
   {
     key: "Practice",
-    items: [
-      "System design",
-      "Database design",
-      "Incident triage",
-      "BA / SA",
-      "Mentoring",
-    ],
+    items: ["System design", "Database design", "Incident triage", "BA / SA"],
   },
 ];

@@ -96,6 +96,11 @@ Each is commented in place; the comment is the full rationale.
 - **`.dither-reveal[data-inked="true"]` sets `--reveal: 1.4` rather than `mask-image: none`.** Dropping
   the mask changes Chromium's layer tree and elements behind it stop painting. Flatten a mask; never
   remove it.
+- **`.dither-reveal` pairs `padding-top: step-3` with an equal negative `margin-top`.** It looks like
+  two edits that cancel, and they do cancel *in layout* — that is the point. The padding reserves the
+  ~9.5px the figure tag straddles above the frame, so the tag is masked inside the border box instead of
+  in the unclipped overflow, where Chromium leaves a stale dot raster mid-scroll and the tag tears along
+  the top rule. Deleting either half brings the tear back.
 - **Reduced motion may change behaviour but never layout.** `DESIGN.md` records the real bug this came
   from. Freeze what things *do*; leave the boxes alone.
 - **`--reveal` is `@property`-registered with `initial-value: 1`.** Every reveal is additive — a client

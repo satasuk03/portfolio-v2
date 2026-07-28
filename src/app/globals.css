@@ -282,11 +282,22 @@
   mask-size: 5px 5px;
   -webkit-mask-repeat: repeat;
   mask-repeat: repeat;
-  /* Let the dotted mask cover absolutely-positioned children (figure tags) that
-     intentionally overflow the frame's top edge. Without no-clip, the mask is
-     trimmed to the element's border box and the tag is cut off. */
+  /* Belt and braces: nothing should paint outside the border box any more (see
+     the reserved strip below), but a call site that starts overflowing again
+     would be cut off rather than merely seamed, so the mask stays unclipped. */
   -webkit-mask-clip: no-clip;
   mask-clip: no-clip;
+  /* The figure tag straddles the frame's top rule, so it used to paint ~9.5px
+     above this element's border box — and a mask painted outside its clip box is
+     the one region Chromium does not reliably repaint while --reveal animates.
+     The strip kept a stale, low-coverage dot raster for a beat after the content
+     inside the box had inked, so the tag tore along the frame's top rule mid
+     scroll. Reserving the strip as padding puts the tag inside the masked box,
+     where it inks in lockstep with everything else. The equal negative margin
+     cancels it: the border box grows upward, while the contents and the flow
+     below stay exactly where they were — measured identical at 390/768/1512. */
+  padding-top: var(--spacing-step-3);
+  margin-top: calc(-1 * var(--spacing-step-3));
   opacity: calc(0.3 + 0.7 * var(--reveal));
   transition:
     --reveal 1600ms var(--ease-print),
