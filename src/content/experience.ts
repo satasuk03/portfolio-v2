@@ -49,7 +49,7 @@ export const companies: Company[] = [
     current: true,
     roles: [
       {
-        title: "XOXONA — product + AI engineer",
+        title: "XOXONA — Product + Senior AI Engineer",
         when: "2026 —",
         body: "A live consumer AI product. I'm the lead engineer, which means I shape features with product rather than receiving them. I built the knowledge system that decides which long-form lore a character needs for the current turn, against an unbounded history and a fixed context budget. It's also the one codebase I've built agent-directed on purpose — I specify, architect and review far more than I type, and every decision in it is one I can defend.",
         href: "https://xoxona.ai/",

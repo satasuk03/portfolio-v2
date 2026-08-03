@@ -27,11 +27,11 @@ const azeretMono = Azeret_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Satasuk Viparksinlapin — Full Stack Engineer, AI Solutionist",
+  title: "Satasuk Viparksinlapin — Senior Software Engineer, AI Solutionist",
   description:
-    "Full stack engineer and AI solutionist in Bangkok, available remote. Backend systems, retrieval and agent tooling — before that, the quest engine inside a platform that served 100k+ players.",
+    "Senior Full stack engineer and AI solutionist in Bangkok, available remote. Backend systems, retrieval and agent tooling — before that, the quest engine inside a platform that served 100k+ players.",
   openGraph: {
-    title: "Satasuk Viparksinlapin — Full Stack Engineer, AI Solutionist",
+    title: "Satasuk Viparksinlapin — Senior Software Engineer, AI Solutionist",
     description:
       "Backend systems, retrieval and agent tooling. A quest engine owned end to end, and what broke along the way.",
     type: "website",

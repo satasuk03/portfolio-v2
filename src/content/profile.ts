@@ -12,7 +12,7 @@ export const profile = {
   /* Kept in step with `hero.tail` below — the running head and the line under
      the knockout word are both in the first viewport, so they cannot disagree.
      Change one, change the other. */
-  role: "Full Stack Engineer, AI Solutionist",
+  role: "Senior Software Engineer, AI Solutionist",
   location: "Bangkok, Thailand",
   availability: "Remote",
   links: {
@@ -34,8 +34,8 @@ export const hero = {
   /* Renders uppercase (.title, The Uppercase Ceiling Rule), so it stays a
      label — the warm first-person line lives in `home.standfirst` below,
      where sentence-case prose belongs. */
-  tail: "— full stack engineer, AI Solutionist.",
-  spoken: "Satasuk Viparksinlapin — full stack engineer, AI Solutionist.",
+  tail: "— senior software engineer, AI Solutionist.",
+  spoken: "Satasuk Viparksinlapin — senior software engineer, AI Solutionist.",
   /* Unnumbered — the photo plate carries Fig. 00, and one figure number may
      only ever point at one thing. */
   figureCaption: "The builder",
@@ -53,7 +53,7 @@ export const hero = {
  */
 export const home = {
   standfirst:
-    "Hi, I'm Zeze. I'm a software engineer with a passion for AIs and creativity. I specialize in backend development, building robust and scalable systems that power great user experiences. I'm a fast learner, and highly adaptive. I believe in simplicity and clarity.",
+    "Hi, I'm Zeze. I'm a senior software engineer with a passion for AIs and creativity. I specialize in backend development, building robust and scalable systems that power great user experiences. I'm a fast learner, and highly adaptive. I believe in simplicity and clarity.",
 } as const;
 
 /**
@@ -93,7 +93,7 @@ export const homeStats = [
  */
 export const about = {
   paragraphs: [
-    "I'm a software engineer in Bangkok. Specialize in: backend, AI, agent workflow orchestration, and the layer where a product's promises meet its data.",
+    "I'm a senior software engineer in Bangkok. Specialize in: backend, AI, agent workflow orchestration, and the layer where a product's promises meet its data.",
     "The through-line of my career is the same skill applied further up each time. I built a quest engine by hand, then owned architecture and incident triage across a 70+ module codebase, and now I direct agents to ship a live consumer AI product — specifying and reviewing far more than I type. Each step needed the same thing: knowing what good looks like before it exists.",
     "I've also watched two markets disappear underneath a product I was building, and rebuilt through both. That's taught me more about engineering judgment than any green-field project has.",
     "I like simple things that hold up. I'd rather delete a system than defend it.",
