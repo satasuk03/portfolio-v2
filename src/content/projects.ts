@@ -198,7 +198,7 @@ export const workProjects: WorkProject[] = [
   {
     name: "zentry-data",
     chip: "2025 — 2026",
-    body: "News search, indexing, and the retrieval layer behind a deep-research agent.",
+    body: "Datasource of AI agents to query Crypto-currency related information. Including deep-research reports and news aggregator",
     foot: "Private · ask me",
     cover: "/images/covers/zentry-data.webp",
     coverAlt: "Zentry Terminal key art — an iridescent sphere beside the wordmark.",
