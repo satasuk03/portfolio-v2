@@ -1,6 +1,7 @@
 import { Figure } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
 import { WaveCanvas } from "@/components/wave/wave-field";
+import { education } from "@/content/education";
 import { companies } from "@/content/experience";
 import { hobbies } from "@/content/hobbies";
 import { about, homeStats } from "@/content/profile";
@@ -136,7 +137,8 @@ export function SkillsTable() {
    § 03 EXPERIENCE — grouped by company, per Ze's brief (REDESIGN-PLAN.md §4).
    One figure per company with roles nested inside; newest company first,
    newest role first within. Numbers live in the prose, not in a stat panel —
-   the four-readout grid was cut in the redesign.
+   the four-readout grid was cut in the redesign. Education closes the section
+   as one more figure in the same series, for the reasons in education.ts.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function ExperienceRecord() {
@@ -205,6 +207,38 @@ export function ExperienceRecord() {
           </Figure>
         </Reveal>
       ))}
+
+      {/* Education, in the same left-rail geometry as the company figures so it
+          reads as the tail of one record rather than a separate module. The tag
+          is derived, not written "03.4": figure numbers are load-bearing and a
+          fourth company must not be able to mint a duplicate. No "Current"
+          chip and no per-role date row — the single date lives in the rail.
+          This figure is much shorter than the three above it, which is correct;
+          a figure is sized by its contents (manual.tsx). Do not pad it. */}
+      <Reveal>
+        <Figure
+          tag={`03.${companies.length + 1}`}
+          label={education.institution}
+          caption={`${education.institution} · ${education.meta} · ${education.when}`}
+        >
+          <div className="grid gap-step-5 lg:grid-cols-[13rem_1fr] lg:gap-step-7">
+            <div>
+              <p className="readout-sm text-ink-mid">{education.when}</p>
+              <h3 className="title-sm mt-step-2 text-ink">
+                {education.institution}
+              </h3>
+              <p className="caption mt-step-2 text-ink-mid">{education.meta}</p>
+            </div>
+
+            <div>
+              <h4 className="title-sm text-ink">{education.qualification}</h4>
+              <p className="measure mt-step-3 body-copy text-ink-mid">
+                {education.body}
+              </p>
+            </div>
+          </div>
+        </Figure>
+      </Reveal>
     </div>
   );
 }
