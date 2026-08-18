@@ -179,7 +179,7 @@ export const workProjects: WorkProject[] = [
     name: "XOXONA",
     chip: "Live",
     live: true,
-    body: "Consumer AI product, Thai-first. I built the first version myself, pitched it, and got it greenlit. I own the retrieval and knowledge system and share product direction. Agent-directed development, on purpose.",
+    body: " AI roleplay platform. Pick a character, step into the story as whoever you want to be, and shape what happens next. Thousands of storylines from writers and fandoms, from slow-burn romance to fantasy epics. Or build your own story and let everyone else play it.",
     foot: "xoxona.ai ↗",
     href: "https://xoxona.ai/",
     cover: "/images/covers/xoxona.webp",
@@ -189,7 +189,7 @@ export const workProjects: WorkProject[] = [
   {
     name: "Radiant / GuildFi",
     chip: "2021 — 2026",
-    body: "Real-time PC gaming engagement platform, 100k+ players. Sole owner of the quest engine through a full rebuild onto durable workflows.",
+    body: "Real-time PC gaming engagement platform, 100k+ players. Radiant overlays directly onto popular video games. By playing their favorite mainstream games, users unlock loot boxes, rewards, in-game discounts, and Web3 assets seamlessly, without needing prior crypto experience.",
     foot: "Private · ask me",
     cover: "/images/covers/radiant.webp",
     coverAlt: "Radiant key art — the Radiant wordmark over game characters.",
