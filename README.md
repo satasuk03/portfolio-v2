@@ -27,14 +27,13 @@ component to run — no API routes, no runtime image optimization, no dynamic OG
 ## Layout
 
 ```
-src/app/          two routes: / (the manual) and /arcade (a boss battle)
+src/app/          one route: / (the manual)
   globals.css     the design tokens — @theme block, type utilities, the dither reveal
 src/content/      all copy and data, as typed constants. No JSX in this directory.
 src/components/
   manual.tsx      Figure, SectionOpener, Marker — the container primitives
   sections.tsx    one renderer per home section
   wave/           the Bayer-dither wave: field.ts is the engine, wave-field.tsx the wrapper
-  arcade/         NEXUS-9: engine.ts is the turn logic, battle.tsx the rendering
   nav/            sticky section bar and dot rail, driven by one scroll computation
 ```
 

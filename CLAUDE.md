@@ -29,25 +29,26 @@ doc amendments to make afterwards — was never applied.** So:
 
 **The source of truth for design tokens is the `@theme` block in `src/app/globals.css`,** nothing else.
 Near-white paper `#fafaf7`, board `#efeee7`, soft-black ink `#111111`, and three spot inks — print-cyan
-`#0092b8` / cyan-deep `#006e88`, magenta `#e8195b`, marker-yellow `#ffc400`. **One calibration:**
-`/arcade` shares the paper palette. There is no glow anywhere and no dark surface on the site.
+`#0092b8` / cyan-deep `#006e88`, magenta `#e8195b`, marker-yellow `#ffc400`. **No calibrations** — one
+palette across the whole site. There is no glow anywhere and no dark surface on the site.
 
 | Document | Trust it for | Do not trust |
 |---|---|---|
-| `DESIGN.md` | Figure-frame container system, rule weights, the eight-step spacing scale, type hierarchy and its named rules, halftone vocabulary, "there is no elevation", the whole Do/Don't list, and the reduced-motion layout-bug paragraph. | Every colour in the front matter (cream `#F2EFE6`, `spot-red`, the `arcade-*` neon block). **The Two Calibrations Rule and The Red Means Over Rule are dead.** The "turning figure" motion section — that renderer was deleted with three.js. |
-| `PRODUCT.md` | Audience, positioning, and the editorial rules below — all non-negotiable. | Brand Commitments (still the cream palette + dark arcade) and the quoted accessibility ratios. |
+| `DESIGN.md` | Figure-frame container system, rule weights, the eight-step spacing scale, type hierarchy and its named rules, halftone vocabulary, "there is no elevation", the whole Do/Don't list, and the reduced-motion layout-bug paragraph. | Every colour in the front matter (cream `#F2EFE6`, `spot-red`, the `arcade-*` neon block). **The Two Calibrations Rule and The Red Means Over Rule are dead, and every arcade section with them** — `/arcade` was deleted on 2026-08-25. The "turning figure" motion section — that renderer was deleted with three.js. |
+| `PRODUCT.md` | Audience, positioning, and the editorial rules below — all non-negotiable. | Brand Commitments (still the cream palette + dark arcade) and the quoted accessibility ratios. Anything about the arcade — the route is gone. |
 | `HANDOFF.md` | §4 landmines and §5 "things that will bite you" still hold. §8 open decisions are still open. | §0 — the repo is under version control now. **§6 predates the redesign**: three.js and `src/components/figure/`, `ScalePanel`, both `/log` links, `src/content/incidents.ts` and "`public/` is empty" are all wrong now. |
 | `REDESIGN-PLAN.md` | The rationale behind what shipped, especially §1 (the wave's two failure modes). | §7's build order is finished. §9 is **outstanding work**, not history. |
-| `.impeccable/surfaces/src-app-page-tsx.md` | Audience and reading-mode framing. | Stale throughout — it references `/log` (deleted), a dark `/arcade`, the `RETRIEVAL` hero word, and a wireframe geodesic that no longer exists. |
+| `.impeccable/surfaces/src-app-page-tsx.md` | Audience and reading-mode framing. | Stale throughout — it references `/log` and `/arcade` (both deleted), the `RETRIEVAL` hero word, and a wireframe geodesic that no longer exists. |
 
-The current, accurate per-route intent lives in the `DIRECTION CONTRACT` header comments at the top of
-`src/app/page.tsx` and `src/app/arcade/page.tsx`. Those were written against what shipped.
+The current, accurate intent for the one remaining route lives in the `DIRECTION CONTRACT` header comment
+at the top of `src/app/page.tsx`. It was written against what shipped.
 
 ## Architecture
 
-**Two routes.** `/` (`src/app/page.tsx`) and `/arcade` (`src/app/arcade/page.tsx`). Static export —
-`output: "export"`, `images: { unoptimized: true }`, `trailingSlash: true` — so there are no server
-routes, no runtime image optimization and no dynamic OG generation. `@/*` maps to `./src/*`.
+**One route.** `/` (`src/app/page.tsx`). `/arcade` and its NEXUS-9 boss battle were deleted on
+2026-08-25, along with `src/components/arcade/` and the `ARCADE MOTION` keyframe block in `globals.css`.
+Static export — `output: "export"`, `images: { unoptimized: true }`, `trailingSlash: true` — so there are
+no server routes, no runtime image optimization and no dynamic OG generation. `@/*` maps to `./src/*`.
 
 **Content is data, never JSX.** Every file in `src/content/` exports plain typed constants and no
 markup. `src/components/sections.tsx` holds one exported renderer per home section (`AboutFigure`,
@@ -62,16 +63,13 @@ computation to decide the active section and passes it to both the sticky top ba
 — deliberately not an IntersectionObserver, which goes stale across anchor jumps. Anchor links only; no
 scroll hijacking, no smooth-scroll library.
 
-**Two framework-free engines with thin React wrappers.** Both keep their game/animation loop out of
-React state, because a loop driven by `setState` re-renders the tree every tick for nothing:
+**One framework-free engine with a thin React wrapper.** It keeps its animation loop out of React
+state, because a loop driven by `setState` re-renders the tree every tick for nothing:
 
 - `components/wave/field.ts` (the Bayer-dither wave) + `wave-field.tsx`. **All animation policy lives in
   the one shared `WaveClock`** — 30fps fixed step, IntersectionObserver visibility, `visibilitychange`
   pausing, reduced-motion still frame — so every canvas on the page (hero field, `WaveRamp` section
   boundaries, seeded stills) behaves identically and shares one rAF loop.
-- `components/arcade/engine.ts` (turn logic) + `battle.tsx` (rendering) + `fx.ts` (canvas particle FX) +
-  `glyphs.tsx` (hand-drawn SVG paths, deliberately not emoji). All engine scheduling goes through
-  `schedule()` so `dispose()` can cancel every pending beat on unmount.
 
 **Tailwind v4, CSS-first.** There is no `tailwind.config.js`. Tokens, the `step-1`…`step-8` spacing
 scale, and the type utilities (`.display-giant`, `.display`, `.title`, `.body-copy`, `.caption`,

@@ -59,7 +59,7 @@ export const home = {
 /**
  * The readout stack in Fig. 01, filling the column the 68ch prose measure
  * leaves empty on desktop. The Mono Owns Measurement Rule: these are the
- * site's only large numerals outside /arcade.
+ * site's only large numerals.
  *
  * Two of the four are DERIVED from the arrays that render § 04 and § 05, so a
  * project added or removed can never leave a stale count on the page. Do not

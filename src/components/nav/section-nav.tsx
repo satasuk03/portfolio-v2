@@ -83,10 +83,11 @@ export function SectionNav() {
             {profile.name}
           </Link>
 
-          {/* Inline tabs only where they fit. The name plus seven captions is
-              ~54rem wide, so below 56rem the old bar silently scrolled
-              horizontally and the links ran off the edge. There the hamburger
-              takes over and the same links live in the drop-down panel. */}
+          {/* Inline tabs only where they fit. The name plus the six section
+              captions is ~50rem wide, so below 56rem the old bar silently
+              scrolled horizontally and the links ran off the edge. There the
+              hamburger takes over and the same links live in the drop-down
+              panel. */}
           <nav
             aria-label="Sections"
             className="ml-auto hidden shrink-0 items-center gap-[2px] min-[56rem]:flex"
@@ -105,12 +106,6 @@ export function SectionNav() {
                 {section.label}
               </a>
             ))}
-            <Link
-              href="/arcade"
-              className="caption px-step-2 py-step-1 whitespace-nowrap text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
-            >
-              Arcade ↗
-            </Link>
           </nav>
 
           <button
@@ -169,13 +164,6 @@ export function SectionNav() {
                   {section.label}
                 </a>
               ))}
-              <Link
-                href="/arcade"
-                onClick={() => setOpen(false)}
-                className="caption mt-step-1 border-t-2 border-ink px-step-2 py-step-3 text-cyan-deep transition-colors duration-150 hover:text-print-cyan"
-              >
-                Arcade ↗
-              </Link>
             </div>
           </nav>
         )}

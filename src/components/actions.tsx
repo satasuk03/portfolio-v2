@@ -80,12 +80,6 @@ export function Topbar() {
         </Link>
 
         <nav className="flex shrink-0 items-center gap-step-3 sm:gap-step-4">
-          <Link
-            href="/arcade"
-            className="caption text-ink transition-colors duration-150 hover:text-cyan-deep"
-          >
-            Arcade
-          </Link>
           <a
             href={profile.links.linkedin}
             target="_blank"
