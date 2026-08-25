@@ -38,7 +38,7 @@ export const hobbies: Hobby[] = [
     n: "01",
     name: "Wing chun & Martial Arts",
     body: "Practitioner. Close-range, economy of motion, and force redirection.",
-    draft: true,
+    // draft: true,
   },
   {
     n: "02",
@@ -46,7 +46,7 @@ export const hobbies: Hobby[] = [
     body: "On the wall most weeks. Love solving route before climbing.",
     image: "/images/hobbies/rock-climbing.webp",
     imageAlt: "",
-    draft: true,
+    // draft: true,
   },
   {
     n: "03",
@@ -54,6 +54,6 @@ export const hobbies: Hobby[] = [
     body: "Advanced Landscape photographer. Visit my Instagram to see more @zezethewanderer 😉",
     image: "/images/hobbies/photography.webp",
     imageAlt: "",
-    draft: true,
+    // draft: true,
   },
 ];
