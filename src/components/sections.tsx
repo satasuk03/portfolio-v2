@@ -426,7 +426,7 @@ export function PersonalProjects() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   § 06 OFF THE CLOCK — four panels. "AI Builder" is deliberately NOT one of
+   § 06 OFF THE CLOCK — three panels. "AI Builder" is deliberately NOT one of
    them; see hobbies.ts. Every panel is draft copy until Ze supplies a line —
    the DRAFT chip renders in development only, and the step-8 checklist greps
    the data file, so a release cannot carry placeholders by accident.
@@ -436,19 +436,44 @@ export function OffTheClock() {
   return (
     <Reveal>
       {/* Ink ground plus a 2px gap draws the interior rules for free. */}
-      <div className="frame grid grid-cols-1 gap-[2px] bg-ink sm:grid-cols-2 lg:grid-cols-4">
+      <div className="frame grid grid-cols-1 gap-[2px] bg-ink sm:grid-cols-2 lg:grid-cols-3">
         {hobbies.map((hobby) => (
-          <div key={hobby.n} className="bg-paper px-step-4 py-step-5">
-            <div className="flex items-baseline justify-between gap-step-3">
-              <span className="figure-tag text-cyan-deep">{hobby.n}</span>
-              {hobby.draft && process.env.NODE_ENV !== "production" && (
-                <span className="figure-tag bg-magenta px-step-2 py-[0.2rem] text-paper">
-                  Draft
-                </span>
-              )}
+          /* `isolate` keeps the plate's stacking local to its own panel, so a
+             photograph can never rise over the neighbouring cell's rule. The
+             copy is the later sibling and therefore paints above it without
+             anyone needing a z-index. */
+          <div
+            key={hobby.n}
+            className="relative isolate min-h-[12rem] overflow-hidden bg-paper px-step-4 py-step-5"
+          >
+            {hobby.image && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={hobby.image}
+                alt={hobby.imageAlt ?? ""}
+                aria-hidden={hobby.imageAlt ? undefined : true}
+                loading="lazy"
+                decoding="async"
+                className="hobby-plate"
+              />
+            )}
+            {/* Pinned to the panel rather than to the copy: the column below
+                stops at 62% once there is a plate, and a chip that tracked it
+                would land in the middle of the picture. */}
+            {hobby.draft && process.env.NODE_ENV !== "production" && (
+              <span className="figure-tag absolute right-step-4 top-step-5 bg-magenta px-step-2 py-[0.2rem] text-paper">
+                Draft
+              </span>
+            )}
+            {/* With a plate behind it the copy takes a column instead of the
+                full panel, so the picture keeps a clean right band at every
+                width. Without one the panel is plain paper and the copy runs
+                the full measure as it always did. */}
+            <div className={`relative ${hobby.image ? "max-w-[62%]" : ""}`}>
+              <span className="figure-tag block text-cyan-deep">{hobby.n}</span>
+              <h3 className="title-sm mt-step-3 text-ink">{hobby.name}</h3>
+              <p className="mt-step-3 body-copy text-ink-mid">{hobby.body}</p>
             </div>
-            <h3 className="title-sm mt-step-3 text-ink">{hobby.name}</h3>
-            <p className="mt-step-3 body-copy text-ink-mid">{hobby.body}</p>
           </div>
         ))}
       </div>

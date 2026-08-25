@@ -37,5 +37,5 @@ export const education: Education = {
   meta: "Faculty of Engineering · Bangkok",
   when: "2016 — 2020",
   qualification: "B.Eng. Computer Engineering",
-  body: "Senior project: predicting cancer type from tumour DNA signatures against a reduced gene set — the first time I had to decide what a model was actually allowed to conclude. I was working at Phatra part-time by the last year, which is why 2019 is the start year everywhere else on this site.",
+  body: "Senior project: predicting cancer type from tumour DNA signatures against a reduced gene set.",
 };

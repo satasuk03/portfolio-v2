@@ -51,19 +51,19 @@ export const companies: Company[] = [
       {
         title: "XOXONA — Engineer Lead + Senior AI Engineer",
         when: "2026 —",
-        body: "A live consumer AI product. I'm the initiator and lead engineer.I built the first version myself, pitched it, and got it greenlit. I crafted the knowledge system that decides which long-form lore a character needs for the current turn, against an unbounded history and a fixed context budget. It's also the one codebase I've built agent-directed on purpose — I specify, architect and review far more than I type.",
+        body: "A live consumer AI product. I'm the initiator and lead engineer. I built the first version myself, pitched it, and got it greenlit. I designed the architecture myself. I crafted the knowledge system that decides which long-form lore a character needs for the current turn, against an unbounded history and a fixed context budget.",
         href: "https://xoxona.ai/",
         hrefLabel: "xoxona.ai ↗",
       },
       {
-        title: "Radiant / GuildFi — software engineer",
-        when: "2021 — 2026",
-        body: "Four and a half years in one large, long-lived, multi-team codebase — 70+ backend modules, five apps, a platform that served 100k+ players. I was sole owner of the quest engine from its first line through a full rebuild onto durable workflows: partial progress, streak repair, rerolls, buff modifiers. I drove the technical pivot from a Web3 scholarship platform to a real-time PC gaming product when the market for the first one collapsed, normalised event streams from five game titles into one engine, and spent a lot of nights debugging systems I hadn't written.",
+        title: "zentry-data — AI Engineer",
+        when: "2025 — 2026",
+        body: "The data and retrieval layer behind zTerminal, Zentry's consumer crypto research terminal. I built the news pipeline from the first commit: multi-source ingestion, embedding, and hybrid retrieval that scores semantic similarity and keyword matching together under a recency window, because news is only worth retrieving while it's current. I'm the primary author of the deep-research agent: a graph that classifies whether a question is worth researching, plans it into parallel tasks, runs them across news, web and social retrieval, and writes a cited report. It runs on durable workflows, on a schedule and on demand.",
       },
       {
-        title: "zentry-data — retrieval & pipelines",
-        when: "2025 — 2026",
-        body: "News search and indexing, and the retrieval layer and deep-research agent workflow.",
+        title: "Radiant / GuildFi — software engineer",
+        when: "2021 — 2026",
+        body: "Four and a half years in one large, long-lived, multi-team codebase with 70+ backend modules, five apps, a platform that served 100k+ players. I was sole owner of the quest engine from its first line through a full rebuild onto durable workflows. I drove the technical pivot from a Web3 scholarship platform to a real-time PC gaming product. Integrated five mainstream game titles (Dota2, LoL, CS2, Valorant and Fortnite).",
       },
     ],
   },
@@ -74,9 +74,9 @@ export const companies: Company[] = [
     when: "2020 — 2021",
     roles: [
       {
-        title: "Software engineer — BA / SA / dev / QA",
+        title: "Core Banking System — Business & System Analyst → Software Engineer",
         when: "2020 — 2021",
-        body: "Core banking — savings, lending, and certificates of deposit — for enterprise bank clients. The team was small enough that you gathered the requirements, analysed them, built the thing and tested it yourself, which is where I learned to write a spec I'd be willing to implement. I led three engineers delivering a regulation-driven interest and billing system in two months, and mentored two juniors through it. Regulation is a good teacher: the requirements aren't negotiable and the arithmetic has to be right.",
+        body: "Core banking system: savings, lending, and certificates of deposit for enterprise bank clients. I started as the business and system analyst and ended as a software engineer, and I stayed with the system through every phase: requirements gathering, analysis, build, test, release and maintenance. I led three engineers on a regulation-driven interest and billing system, delivered in two months..",
       },
       {
         title: "Front-end developer — part time",
@@ -94,7 +94,7 @@ export const companies: Company[] = [
       {
         title: "Data engineer — part time",
         when: "2019 — 2020",
-        body: "ETL and automation in the research department, supporting the investment team. Scraping and transforming market and alternative data into databases and Tableau — including a pipeline tracking Thai dam water levels, which is a genuinely useful signal if you trade agriculture. My first job, and where I learned that real data arrives broken.",
+        body: "ETL and automation in the research department, supporting the investment team. Scraping and transforming market and alternative data into databases. My first job, and where I learned that real data arrives broken.",
       },
     ],
   },

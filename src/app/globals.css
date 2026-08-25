@@ -247,6 +247,50 @@
   .rule-heavy {
     border-top: 5px solid var(--color-ink);
   }
+
+  /* ── the hobby plate ──────────────────────────────────────────────────────
+     § 06's photograph, bled off the panel's right edge and dissolved leftward
+     so the copy still sits on clean paper. One element carries both the
+     picture and its own exit.
+
+     The mask is a plain linear gradient, NOT a dither. § 06 is the one place
+     on the site where a full-tone photograph is the subject rather than a
+     texture, and dotting it would read as a printing fault instead of as
+     halftone. The three stops matter: a two-stop fade puts the whole
+     transition in a straight ramp and the eye finds its start edge. Holding
+     ~35% through the middle stretches the dissolve across most of the plate
+     so there is no line to find.
+     ───────────────────────────────────────────────────────────────────── */
+  .hobby-plate {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 68%;
+    height: 100%;
+    object-fit: cover;
+    /* Anchored right, not centre. The plate bleeds off the right edge, so the
+       right of the photograph is the part that stays fully inked — centring
+       spends the crop there and clips whatever the picture is actually of,
+       while the left is dissolving into paper regardless. Crop from the side
+       nobody can see. */
+    object-position: 100% 50%;
+    /* Paper is #fafaf7, not #fff, so a photograph at full strength reads as a
+       screenshot pasted onto the sheet. Knocking it back is what lets it sit
+       in the same ink range as everything else. */
+    opacity: 0.92;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgb(0 0 0 / 0.28) 46%,
+      #000 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgb(0 0 0 / 0.28) 46%,
+      #000 100%
+    );
+    pointer-events: none;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

@@ -121,7 +121,7 @@ export default function Home() {
             id="off-the-clock"
             seq="§ 06"
             title="Off the clock"
-            lede="Four things I do that aren't engineering."
+            lede="Three things I do that aren't engineering."
           />
           <OffTheClock />
         </Spread>

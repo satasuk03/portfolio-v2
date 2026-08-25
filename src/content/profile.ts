@@ -93,10 +93,8 @@ export const homeStats = [
  */
 export const about = {
   paragraphs: [
-    "I'm a senior software engineer in Bangkok. Specialize in: backend, AI, agent workflow orchestration, and the layer where a product's promises meet its data.",
-    "The through-line of my career is the same skill applied further up each time. I built a quest engine by hand, then owned architecture and incident triage across a 70+ module codebase, and now I direct agents to ship a live consumer AI product — specifying and reviewing far more than I type. Each step needed the same thing: knowing what good looks like before it exists.",
-    "I've also watched two markets disappear underneath a product I was building, and rebuilt through both. That's taught me more about engineering judgment than any green-field project has.",
-    "I like simple things that hold up. I'd rather delete a system than defend it.",
+    "I'm a senior software engineer in Bangkok. Specialize in: backend, AI, agent workflow orchestration, and product engineering.",
+    "From solo coding to ownership. I built a quest engine by hand. Then I owned a 70+ module codebase. Now I've started a consumer AI product of my own and shipped it live.",
   ],
   /* Closes Fig. 01, directly under the "I'd rather delete a system than defend
      it" line — his own vernacular for the idea, then the canonical source for

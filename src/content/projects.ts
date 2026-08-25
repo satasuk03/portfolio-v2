@@ -187,6 +187,15 @@ export const workProjects: WorkProject[] = [
     seed: 101,
   },
   {
+    name: "zentry-data",
+    chip: "2025 — 2026",
+    body: "The research engine behind zTerminal, Zentry's crypto research terminal. Ask what a token, a protocol, or the market has been going on, and get an answer. News from across the space, gathered and ranked. Or hand it a bigger question and let it plan the research and write a report.",
+    foot: "Private · ask me",
+    cover: "/images/covers/zentry-data.webp",
+    coverAlt: "Zentry Terminal key art — an iridescent sphere beside the wordmark.",
+    seed: 311,
+  },
+  {
     name: "Radiant / GuildFi",
     chip: "2021 — 2026",
     body: "Real-time PC gaming engagement platform, 100k+ players. Radiant overlays directly onto popular video games. By playing their favorite mainstream games, users unlock loot boxes, rewards, in-game discounts, and Web3 assets seamlessly, without needing prior crypto experience.",
@@ -194,15 +203,6 @@ export const workProjects: WorkProject[] = [
     cover: "/images/covers/radiant.webp",
     coverAlt: "Radiant key art — the Radiant wordmark over game characters.",
     seed: 207,
-  },
-  {
-    name: "zentry-data",
-    chip: "2025 — 2026",
-    body: "Datasource of AI agents to query Crypto-currency related information. Including deep-research reports and news aggregator",
-    foot: "Private · ask me",
-    cover: "/images/covers/zentry-data.webp",
-    coverAlt: "Zentry Terminal key art — an iridescent sphere beside the wordmark.",
-    seed: 311,
   },
 ];
 
