@@ -41,7 +41,7 @@ export function AboutFigure() {
                 ink rule separates them — the same panel-edge weight used
                 elsewhere, so the quote reads as a distinct register rather
                 than a fifth paragraph. */}
-            <blockquote className="measure mt-step-6 border-t-2 border-ink pt-step-5">
+            <blockquote className="measure mt-step-6 border-t-2 border-ink pt-step-4">
               <p className="pull-quote text-ink">
                 &ldquo;{about.epigraph.text}&rdquo;
               </p>
@@ -70,17 +70,28 @@ export function AboutFigure() {
  *
  * Source order is dt → dd for assistive tech; `flex-col-reverse` puts the
  * numeral on top visually, where it scans.
+ *
+ * That ink ground is also why an ODD stat count cannot just be dropped in: the
+ * two-column arrangement below `lg` would leave one slot unfilled and the
+ * container's own `bg-ink` would paint through it as a solid black block. The
+ * last cell spans the row instead. Computed from the length rather than hung
+ * on `last:`, so it stays correct if a fourth readout ever returns.
  */
 function ScaleStack() {
+  const oddCount = homeStats.length % 2 === 1;
   return (
     <dl className="grid grid-cols-2 gap-[2px] border-2 border-ink bg-ink lg:grid-cols-1">
-      {homeStats.map((stat) => (
+      {homeStats.map((stat, i) => (
         <div
           key={stat.label}
-          className="flex flex-col-reverse gap-step-1 bg-board px-step-4 py-step-4"
+          className={`flex flex-col-reverse gap-step-1 bg-board px-step-4 py-step-4${
+            oddCount && i === homeStats.length - 1
+              ? " max-lg:col-span-2"
+              : ""
+          }`}
         >
           {/* `homeStats` is `as const`, so it types as a union and only two of
-              the four members carry `note` — narrow, don't index. The guard is
+              the three members carry `note` — narrow, don't index. The guard is
               also why a noteless stat gets no empty line under its label. */}
           <dt className="caption text-ink-mid">
             {stat.label}

@@ -145,17 +145,24 @@
     }
   }
 
-  /* A quoted maxim, set one notch under `.title`. Deliberately NOT uppercase:
-     The Uppercase Ceiling Rule gives caps to display, titles, captions and
-     tags, and a quotation is prose — someone else's sentence, printed as a
-     sentence. It takes the display face for weight rather than the body face
-     at a size Archivo does not have a step for. */
+  /* A quoted maxim, set BELOW `.title-sm` (1.125rem) rather than one notch
+     under `.title`. Resized 2026-08-26: it is a borrowed sentence sitting in a
+     section about Ze, so it must cite, not declaim. At the old display step it
+     was the largest prose in Fig. 01 — Saint-Exupéry outranking the man the
+     section is named for.
+
+     Deliberately NOT uppercase: The Uppercase Ceiling Rule gives caps to
+     display, titles, captions and tags, and a quotation is prose — someone
+     else's sentence, printed as a sentence. It keeps the display face, now at
+     600, purely to stay a distinct register from the `.body-copy` paragraph
+     above it; at this size the face and the weight do that work, not the
+     scale. The tight tracking and 1.25 leading were display-size corrections
+     and left with the display size. */
   .pull-quote {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(1.25rem, 2.6vw, 1.75rem);
-    line-height: 1.25;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.5;
     text-wrap: balance;
   }
 

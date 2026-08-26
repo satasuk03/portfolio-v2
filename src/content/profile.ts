@@ -1,4 +1,4 @@
-import { projects, workProjects } from "./projects";
+import { workProjects } from "./projects";
 
 export const profile = {
   name: "Satasuk Viparksinlapin",
@@ -61,9 +61,15 @@ export const home = {
  * leaves empty on desktop. The Mono Owns Measurement Rule: these are the
  * site's only large numerals.
  *
- * Two of the four are DERIVED from the arrays that render § 04 and § 05, so a
- * project added or removed can never leave a stale count on the page. Do not
- * hard-code them back.
+ * The production-products count is DERIVED from the array that renders § 04,
+ * so a project added or removed can never leave a stale count on the page. Do
+ * not hard-code it back.
+ *
+ * A fourth readout, "Public repos" (`projects.length`), was cut 2026-08-26. It
+ * read as inventory rather than achievement beside "100k+ players served", it
+ * invited a ratio against the products count sitting directly above it, and
+ * being derived it FELL whenever the personal-projects list was curated down —
+ * a metric that punished the exact editing the epigraph below praises.
  *
  * `note` carries the provenance. That is the whole reason the years figure is
  * safe to print: PRODUCT.md bans a bare years-of-experience total because the
@@ -78,10 +84,6 @@ export const homeStats = [
     value: String(workProjects.length).padStart(2, "0"),
     label: "Production products",
   },
-  {
-    value: String(projects.length).padStart(2, "0"),
-    label: "Public repos",
-  },
   /* Past tense, always — Radiant was sunset in 2026 (PRODUCT.md). */
   { value: "100k+", label: "Players served", note: "Radiant" },
 ] as const;
@@ -93,7 +95,7 @@ export const homeStats = [
  */
 export const about = {
   paragraphs: [
-    "I'm a senior software engineer in Bangkok. Specialize in: backend, AI, agent workflow orchestration, and product engineering.",
+    "I'm a senior software engineer in Bangkok. Specialize in: backend, AI Engineering, agent workflow orchestration, and product engineering.",
     "From solo coding to ownership. I built a quest engine by hand. Then I owned a 70+ module codebase. Now I've started a consumer AI product of my own and shipped it live.",
   ],
   /* Closes Fig. 01, directly under the "I'd rather delete a system than defend
