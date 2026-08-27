@@ -53,7 +53,7 @@ export const hero = {
  */
 export const home = {
   standfirst:
-    "Hi, I'm Zeze. I'm a senior software engineer with a passion for AIs and creativity. I specialize in backend development, building robust and scalable systems that power great user experiences. I'm a fast learner, and highly adaptive. I believe in simplicity and clarity.",
+    "Hi, I'm Zeze. I'm a senior software engineer with a passion for AIs and creativity. I specialize in backend development, AI engineering and product engineering. I'm a fast learner, and highly adaptive. I believe in simplicity and clarity.",
 } as const;
 
 /**

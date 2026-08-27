@@ -86,6 +86,6 @@ export const skillGroups: SkillGroup[] = [
   },
   {
     key: "Practice",
-    items: ["System design", "Database design", "Incident triage", "BA / SA"],
+    items: ["System design", "Domain Driven Design", "Database design", "Incident triage", "BA / SA"],
   },
 ];
