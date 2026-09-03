@@ -39,12 +39,16 @@ export type Company = {
   roles: Role[];
 };
 
-/** Newest first: zentry, blockfint, phatra. */
+/** Newest first: cryptomind, blockfint, phatra. */
 export const companies: Company[] = [
   {
-    id: "zentry",
-    name: "Zentry",
-    meta: "Cryptomind Group · Bangkok",
+    /* Labelled by the parent group, not the Zentry brand — Ze's call,
+       2026-09-03. `meta` carries the sector because the name already carries
+       the group; "Cryptomind Group · Bangkok" here would print the group
+       twice in one caption. */
+    id: "cryptomind",
+    name: "CRYPTOMIND",
+    meta: "Digital assets · Bangkok",
     when: "2021 — now",
     current: true,
     roles: [
