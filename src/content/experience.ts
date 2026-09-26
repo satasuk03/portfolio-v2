@@ -23,7 +23,7 @@ export type Role = {
   body: string;
   /** Public product link, when the work has one. Private roles omit it. */
   href?: string;
-  /** Link label — the § 04 card convention, e.g. "xoxona.ai ↗". */
+  /** Link label — the § 04 card convention, e.g. "example.com ↗". */
   hrefLabel?: string;
 };
 
@@ -53,11 +53,10 @@ export const companies: Company[] = [
     current: true,
     roles: [
       {
-        title: "XOXONA — Engineer Lead + Senior AI Engineer",
+        /* Product name withheld on purpose — Ze's call, 2026-09-25. */
+        title: "??? — Engineer Lead + Senior AI Engineer",
         when: "2026 —",
         body: "A live consumer AI product. I'm the initiator and lead engineer. I built the first version myself, pitched it, and got it greenlit. I designed the architecture myself. I crafted the knowledge system that decides which long-form lore a character needs for the current turn, against an unbounded history and a fixed context budget.",
-        href: "https://xoxona.ai/",
-        hrefLabel: "xoxona.ai ↗",
       },
       {
         title: "zentry-data — AI Engineer",

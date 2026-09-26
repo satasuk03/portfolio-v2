@@ -176,14 +176,13 @@ export type WorkProject = {
 
 export const workProjects: WorkProject[] = [
   {
-    name: "XOXONA",
+    /* Name, link and key art withheld on purpose — Ze's call, 2026-09-25.
+       Falls back to the wave still like any cover-less card. */
+    name: "???",
     chip: "Live",
     live: true,
     body: " AI roleplay platform. Pick a character, step into the story as whoever you want to be, and shape what happens next. Thousands of storylines from writers and fandoms, from slow-burn romance to fantasy epics. Or build your own story and let everyone else play it.",
-    foot: "xoxona.ai ↗",
-    href: "https://xoxona.ai/",
-    cover: "/images/covers/xoxona.webp",
-    coverAlt: "XOXONA key art — the wordmark beside a character illustration.",
+    foot: "Private · ask me",
     seed: 101,
   },
   {
