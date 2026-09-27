@@ -8,6 +8,7 @@
  */
 
 import { useRef } from "react";
+import { Redacted } from "@/components/manual";
 import { heroPlate } from "@/content/profile";
 
 export function HeroPlate() {
@@ -60,7 +61,7 @@ export function HeroPlate() {
                 cell.accent ? "text-cyan-deep" : "text-ink"
               }`}
             >
-              {cell.value}
+              <Redacted text={cell.value} />
             </dd>
           </div>
         ))}

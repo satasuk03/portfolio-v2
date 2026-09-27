@@ -121,3 +121,22 @@ export function StackRow({ items }: { items: readonly string[] }) {
     </ul>
   );
 }
+
+/*
+ * Renders copy that may carry a redaction bar. Content writes the bar as a
+ * run of █ so it stays plain data; here each run is hidden from assistive tech
+ * and replaced with spoken text, or a screen reader reads "full block" once per
+ * character.
+ */
+export function Redacted({ text }: { text: string }) {
+  return text.split(/(█+)/).map((part, i) =>
+    part.startsWith("█") ? (
+      <span key={i}>
+        <span aria-hidden="true">{part}</span>
+        <span className="sr-only">name withheld</span>
+      </span>
+    ) : (
+      part
+    ),
+  );
+}

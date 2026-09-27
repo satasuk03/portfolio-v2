@@ -115,7 +115,7 @@ export const heroPlate = {
   label: "Bondi, 2025",
   cells: [
     { term: "Based", value: "Bangkok · UTC+7", accent: false },
-    { term: "Building", value: "XOXONA", accent: true },
+    { term: "Building", value: "██████", accent: true },
   ],
   lightbox: {
     enlarge: "Enlarge",
