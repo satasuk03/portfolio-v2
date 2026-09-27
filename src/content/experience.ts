@@ -54,7 +54,7 @@ export const companies: Company[] = [
     roles: [
       {
         /* Product name withheld on purpose — Ze's call, 2026-09-25. */
-        title: "??? — Engineer Lead + Senior AI Engineer",
+        title: "██████ — Engineer Lead + Senior AI Engineer",
         when: "2026 —",
         body: "A live consumer AI product. I'm the initiator and lead engineer. I built the first version myself, pitched it, and got it greenlit. I designed the architecture myself. I crafted the knowledge system that decides which long-form lore a character needs for the current turn, against an unbounded history and a fixed context budget.",
       },

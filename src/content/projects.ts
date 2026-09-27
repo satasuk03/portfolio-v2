@@ -176,13 +176,16 @@ export type WorkProject = {
 
 export const workProjects: WorkProject[] = [
   {
-    /* Name, link and key art withheld on purpose — Ze's call, 2026-09-25.
-       Falls back to the wave still like any cover-less card. */
-    name: "???",
+    /* Name and link withheld on purpose — Ze's call, 2026-09-25. The cover is
+       the key art blurred into the file itself, so the wordmark never ships;
+       a CSS blur would still serve the sharp original. */
+    name: "██████",
     chip: "Live",
     live: true,
     body: " AI roleplay platform. Pick a character, step into the story as whoever you want to be, and shape what happens next. Thousands of storylines from writers and fandoms, from slow-burn romance to fantasy epics. Or build your own story and let everyone else play it.",
     foot: "Private · ask me",
+    cover: "/images/covers/redacted.webp",
+    coverAlt: "Product key art, blurred beyond recognition.",
     seed: 101,
   },
   {

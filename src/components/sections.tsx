@@ -1,4 +1,4 @@
-import { Figure } from "@/components/manual";
+import { Figure, Redacted } from "@/components/manual";
 import { Reveal } from "@/components/reveal";
 import { WaveCanvas } from "@/components/wave/wave-field";
 import { education } from "@/content/education";
@@ -190,7 +190,9 @@ export function ExperienceRecord() {
                     }
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-step-3">
-                      <h4 className="title-sm text-ink">{role.title}</h4>
+                      <h4 className="title-sm text-ink">
+                        <Redacted text={role.title} />
+                      </h4>
                       <span className="readout-sm text-ink-mid">
                         {role.when}
                       </span>
@@ -301,7 +303,9 @@ export function WorkProjectCards() {
               >
                 {project.chip}
               </span>
-              <h3 className="title-sm mt-step-3 text-ink">{project.name}</h3>
+              <h3 className="title-sm mt-step-3 text-ink">
+                <Redacted text={project.name} />
+              </h3>
               <p className="mt-step-2 text-sm leading-relaxed text-ink-mid">
                 {project.body}
               </p>
