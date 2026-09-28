@@ -719,7 +719,7 @@ export class Stage {
       const reduced = this.opts.reduced;
       const rd = this.reader;
       this.sfx.bootUp();
-      this.sfx.ambientOn(1, 4);
+      this.sfx.musicOn(1, 4);
       const tl = gsap.timeline({ onComplete: () => resolve() });
       this.flash("#bff6ff", 0.5, 0.6);
       this.kick("glitch", 1, 0.8);

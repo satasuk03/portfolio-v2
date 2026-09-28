@@ -15,9 +15,13 @@
  * scale, scratched steel. Without them the pass is fully procedural.
  *
  * Deterministic (seeded) and CPU-only; generated once at load.
+ *
+ * Deliberately three-free: `/` generates enamel plates with the same code for
+ * its hard-surface panels and must not pull three.js into its bundle. The
+ * three.js wrapper (textures and the reader's material) lives in wear-maps.ts.
  */
 
-import * as THREE from "three";
+// Type-only: erased at build, so `/` still never bundles three.js.
 import type { Surfaces } from "./surfaces";
 
 // ── value noise ─────────────────────────────────────────────────────────────
@@ -460,28 +464,4 @@ export function sticker(
   wr.orm.fillRect(-w / 2, -h / 2, w, h);
   wr.orm.restore();
   flecks(wr, x, y, w, h, 0.9);
-}
-
-/** Wrap the canvases as textures. `orm` feeds roughness, metalness and clearcoat. */
-export function wearMaps(wr: Wear, aniso: number) {
-  const map = new THREE.CanvasTexture(wr.colC);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = aniso;
-  const orm = new THREE.CanvasTexture(wr.ormC);
-  orm.anisotropy = aniso;
-  const bumpMap = new THREE.CanvasTexture(wr.bmpC);
-  bumpMap.anisotropy = aniso;
-  return { map, orm, bumpMap };
-}
-
-/**
- * The material every weathered part wears. `hi` adds a clearcoat lobe masked
- * to the intact enamel, so paint reads semi-gloss next to matte rust — the
- * single biggest cue that it is paint on steel and not a printed picture.
- */
-export function wearMaterial(wr: Wear, aniso: number, o: { hi: boolean; bumpScale?: number; coat?: number }) {
-  const { map, orm, bumpMap } = wearMaps(wr, aniso);
-  const base = { map, roughnessMap: orm, metalnessMap: orm, bumpMap, bumpScale: o.bumpScale ?? 3, roughness: 1, metalness: 1 };
-  if (!o.hi) return new THREE.MeshStandardMaterial(base);
-  return new THREE.MeshPhysicalMaterial({ ...base, clearcoat: o.coat ?? 0.35, clearcoatMap: orm, clearcoatRoughness: 0.42 });
 }

@@ -7,28 +7,25 @@ related_targets: []
 
 ## Scope & Mode
 
-The landing route (`/`). Visitor mode: **Persuade** — the visitor decides whether to open a conversation.
-
-Sibling routes: `/log` is **Read** (comprehension and wayfinding outrank expression). `/arcade` is **Experience**
-(the artifact leads; it is the only dark surface on the site).
+The landing route (`/`), the **reading edition**. Visitor mode: **Persuade** — the visitor decides whether to
+open a conversation. Sibling route: `/play`, the playable edition, is **Experience** (the artifact leads).
+`/log` and `/arcade` no longer exist.
 
 ## Audience & Job
 
 A hiring manager, engineering leader, or senior engineer arriving from LinkedIn, GitHub, or a résumé link. Two
 reading speeds must both succeed on this one page: a 30-second mobile skim that resolves role, stack, scale and
 location; and a 10-minute desktop read that finds evidence of judgment. The only action is a message on LinkedIn
-or a look at GitHub.
+or a look at GitHub; the secondary action is loading `/play`.
 
 ## Chosen Form
 
-**The game manual** — a late-80s/early-90s Japanese game-manual print world. Content lives in FIG-numbered figure
-frames sized by their contents, and prose refers to figures by number.
-
-**The direction roll was not run.** Ze pinned this world explicitly across three rounds of questions (arcade →
-light arcade → Japanese arcade print, then structural intensity over full period pastiche). A user-pinned direction
-beats the roll. The execution risk sits in the rendition, not the selection: cream paper plus a tasteful serif is
-the safe neighbour this must not collapse into, so the render commits to heavy keylines, halftone at figure density,
-and spot inks used as whole fields.
+**The hangar** (2026-09-28) — `/` restyled to sit in `/play`'s hard sci-fi world, on Ze's brief: a field unit's
+HUD over a live topographic survey map, CBRPNK cards in solid spot colours, weathered enamel plates. **The
+direction roll was not run**: the brief pinned the world. The risk sits in the rendition — the neon-on-black
+cyberpunk default is the safe neighbour this must not collapse into, so `/` carries no glow, commits its colour
+as whole card fields, and keeps the reading path uninterrupted. Memorable moment: the vertical SATASUK masthead
+over the contour field, with the reticle lensing the lines under the cursor.
 
 ## Proof & Content
 
@@ -48,16 +45,16 @@ Retrieval leads; the platform record is the depth underneath it (emphasis decide
   subtracts the running head's height for exactly this reason.
 - **No lead title.** Ze was never formally a Technical Lead; the ownership facts are stated instead. See the note
   in `src/content/profile.ts`.
-- No commit statistics. Radiant is past tense. Only XOXONA may carry the live cyan state.
-- Static export, so the figure is procedural — `public/` is empty and no art is coming.
+- No commit statistics. Radiant is past tense. Only the live product may carry the cyan Live/Current state.
+- Static export. Imagery is the portrait, the three product covers and two hobby photos in `public/images/`; the rest is procedural (contour shader, enamel wear, barcodes).
 - Native scroll only. Nothing may be gated behind scroll depth; Product Principle 1 outranks the scroll effect.
 
 ## Memorable Moment
 
-**The knockout.** `RETRIEVAL` is cut out of a full-bleed sheet of paper, halftone-filled, with a wireframe geodesic
-turning behind it — the figure is visible plainly in the open field above the word and through its letterforms. It
-is built from three stacked bands and one in-document SVG mask, so it needs no JavaScript: scrolling carries the
-opaque band away and reveals the whole drawing.
+**The survey poster.** SATASUK runs down the left edge as a vertical Kanit 900 masthead over a live contour map;
+the pointer lenses the lines under a cyan reticle and a press ripples through them. Everything around it is HUD
+furniture — corner brackets, BKK timecode, coordinates, the blue status tag. The field is raw WebGL1 and additive:
+without it the hero is the same page on a static survey grid.
 
 ## Unresolved
 
@@ -65,5 +62,4 @@ opaque band away and reveals the whole drawing.
   chunking, hybrid vs dense, reranking, context-budget allocation. Each entry in `src/content/retrieval.ts` carries
   its own `pending` list. This is the most interview-relevant material on the page.
 - XOXONA and Radiant screenshots — Ze has both; paths not yet supplied. Radiant's are irreplaceable.
-- Three rendered comps were never generated (image generation spends Ze's own grok quota); the direction was
-  approved from ASCII palette previews instead.
+- The hangar was built unattended from Ze's written brief and references; he has not reviewed the render yet.

@@ -30,7 +30,8 @@ import { ReaderScreen } from "./screen";
 import type { Surfaces } from "./surfaces";
 import type { Fonts } from "./textures";
 import { plinthTexture, rng } from "./textures";
-import { flecks, seam, sticker, wearMaterial, weathered, wornText, type WearSpot } from "./weathering";
+import { wearMaterial } from "./wear-maps";
+import { flecks, seam, sticker, weathered, wornText, type WearSpot } from "./weathering";
 
 export const BODY = { w: 1.9, h: 2.9, d: 0.56, base: 0.5 };
 const F = BODY.d / 2; // front face z

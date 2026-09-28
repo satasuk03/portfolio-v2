@@ -4,7 +4,8 @@
  * last — so only things written hot here ever bloom.
  */
 
-const noise = /* glsl */ `
+/** Value noise + fbm. Shared with the home page's raw-WebGL topo field. */
+export const noiseGLSL = /* glsl */ `
   float hash21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
   float vnoise(vec2 p){
     vec2 i = floor(p), f = fract(p);
@@ -39,7 +40,7 @@ export const floorFrag = /* glsl */ `
   uniform vec3 uAccent;
   uniform vec4 uRipples[4];
   varying vec2 vW;
-  ${noise}
+  ${noiseGLSL}
 
   float contour(float v, float width){
     float fw = fwidth(v);

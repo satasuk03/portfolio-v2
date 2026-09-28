@@ -182,7 +182,7 @@ export const workProjects: WorkProject[] = [
     name: "██████",
     chip: "Live",
     live: true,
-    body: " AI roleplay platform. Pick a character, step into the story as whoever you want to be, and shape what happens next. Thousands of storylines from writers and fandoms, from slow-burn romance to fantasy epics. Or build your own story and let everyone else play it.",
+    body: "AI roleplay platform. Pick a character, step into the story as whoever you want to be, and shape what happens next. Thousands of storylines from writers and fandoms, from slow-burn romance to fantasy epics. Or build your own story and let everyone else play it.",
     foot: "Private · ask me",
     cover: "/images/covers/redacted.webp",
     coverAlt: "Product key art, blurred beyond recognition.",

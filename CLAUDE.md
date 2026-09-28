@@ -23,101 +23,122 @@ Toolchain is Node 24.15 / pnpm 10.33 — **pnpm only, no bun.**
 
 ## The document layer is partly stale — read this before trusting it
 
-There are five planning documents at the repo root and one under `.impeccable/`. The Direction A
-redesign (git history, `936887d` back to `9038681`) shipped and **`REDESIGN-PLAN.md` §9 — the list of
-doc amendments to make afterwards — was never applied.** So:
+There are five planning documents at the repo root and one under `.impeccable/`. Two redesigns have
+shipped since most of them were written: Direction A (the paper "game manual", `936887d` back to
+`9038681`) and then, on 2026-09-28, **the hangar** — `/` rebuilt in the hard sci-fi world of `/play`.
+The paper palette, the Bayer-dither wave and the `.dither-reveal` mask are all gone. So:
 
 **The source of truth for design tokens is the `@theme` block in `src/app/globals.css`,** nothing else.
-Near-white paper `#fafaf7`, board `#efeee7`, soft-black ink `#111111`, and three spot inks — print-cyan
-`#0092b8` / cyan-deep `#006e88`, magenta `#e8195b`, marker-yellow `#ffc400`. **No calibrations** — one
-palette across the whole site. There is no glow anywhere and no dark surface on the site.
+Hangar black `#040507`, graphite `#1b1d22`, bone `#ece6d6`, enamel `#e2dccb`, grey `#c4c2b8`, ink `#101010`,
+HUD text `#e9e4d6` / `#9d998f`, the status blue `#2f63e6`, the LCD orange `#ff9a2e`, and five module
+spots. **Which section wears which spot lives in `src/content/nav.ts`**, not in CSS. `DESIGN.md` was
+rewritten for the hangar and describes the system; where it and `globals.css` disagree, the CSS wins.
 
 | Document | Trust it for | Do not trust |
 |---|---|---|
-| `DESIGN.md` | Figure-frame container system, rule weights, the eight-step spacing scale, type hierarchy and its named rules, halftone vocabulary, "there is no elevation", the whole Do/Don't list, and the reduced-motion layout-bug paragraph. | Every colour in the front matter (cream `#F2EFE6`, `spot-red`, the `arcade-*` neon block). **The Two Calibrations Rule and The Red Means Over Rule are dead, and every arcade section with them** — `/arcade` was deleted on 2026-08-25. The "turning figure" motion section — that renderer was deleted with three.js. |
-| `PRODUCT.md` | Audience, positioning, and the editorial rules below — all non-negotiable. | Brand Commitments (still the cream palette + dark arcade) and the quoted accessibility ratios. Anything about the arcade — the route is gone. |
-| `HANDOFF.md` | §4 landmines and §5 "things that will bite you" still hold. §8 open decisions are still open. | §0 — the repo is under version control now. **§6 predates the redesign**: three.js and `src/components/figure/`, `ScalePanel`, both `/log` links, `src/content/incidents.ts` and "`public/` is empty" are all wrong now. |
-| `REDESIGN-PLAN.md` | The rationale behind what shipped, especially §1 (the wave's two failure modes). | §7's build order is finished. §9 is **outstanding work**, not history. |
-| `.impeccable/surfaces/src-app-page-tsx.md` | Audience and reading-mode framing. | Stale throughout — it references `/log` and `/arcade` (both deleted), the `RETRIEVAL` hero word, and a wireframe geodesic that no longer exists. |
+| `DESIGN.md` | The hangar system as shipped: card stock, plates, HUD furniture, type roles, motion rules, contrast table, and the reduced-motion layout-bug history. | Nothing known to be stale as of 2026-09-28. |
+| `PRODUCT.md` | Audience, positioning, and the editorial rules below — all non-negotiable. | The quoted accessibility ratios (they are for the retired paper palette — `DESIGN.md` has the current ones). Anything about the arcade — the route is gone. |
+| `HANDOFF.md` | §4 landmines and §5 "things that will bite you" still hold. §8 open decisions are still open. | §0 — the repo is under version control now. **§6 predates both redesigns**: three.js on `/`, `src/components/figure/`, `ScalePanel`, both `/log` links, `src/content/incidents.ts` and "`public/` is empty" are all wrong. |
+| `REDESIGN-PLAN.md` | The rationale behind Direction A, especially §1. | It describes the paper edition, which `/` no longer is. §7 and §9 are history. |
+| `.impeccable/surfaces/src-app-page-tsx.md` | Audience and reading-mode framing; updated for the hangar. | — |
 
-The current, accurate intent for the one remaining route lives in the `DIRECTION CONTRACT` header comment
-at the top of `src/app/page.tsx`. It was written against what shipped.
+The current, accurate intent for each route lives in the `DIRECTION CONTRACT` header comment at the top
+of `src/app/page.tsx` and `src/app/play/page.tsx`.
 
 ## Architecture
 
-**Two routes.** `/` (`src/app/page.tsx`), the print edition, and `/play` (`src/app/play/page.tsx`), the
-playable edition added 2026-09-28 — a three.js + GSAP field unit whose panels import the same
-`src/content` data, so the two editions cannot disagree on facts. three.js and GSAP are back as
-dependencies **for `/play` only**: the engine in `src/components/play/engine/` is dynamic-imported, so `/`
-never loads it. `/play` is the one deliberately dark surface; its tokens live in `play.css`, scoped under
-`.play-root`. The centrepiece is the card reader in `engine/reader.ts` (procedural weathering in
-`weathering.ts`, live LCD in `screen.ts`); its EJECT, CHG, SND lever and knobs are real raycast
-controls. Its face is laid out in the `L` table, and in development every part registers a footprint
+**Two routes, one world.** `/` (`src/app/page.tsx`) is the **reading edition** — the professional
+record, built for a 30-second recruiter skim and a 15-minute engineer read. `/play`
+(`src/app/play/page.tsx`) is the **playable edition** — a three.js + GSAP field unit whose panels import
+the same `src/content` data. Both are set in the same hangar: black ground, blue topographic contours,
+CBRPNK rounded cards in solid spot colours, weathered cream enamel. `/` reads first; `/play` is the toy.
+`/play`'s centrepiece is the card reader in `play/engine/reader.ts` (procedural weathering in
+`weathering.ts`, live LCD in `screen.ts`); its EJECT, CHG, SND lever and knobs are real raycast controls,
+and every panel is also reachable from the DOM module bay and keys 1–7. Its tokens live in `play.css`,
+scoped under `.play-root`. `/arcade` and its NEXUS-9 boss battle were deleted on 2026-08-25.
+The reader's face is laid out in the `L` table, and in development every part registers a footprint
 that `checkLayout` tests against every other and against the face outline. **A collision prints a
 `[reader] layout overlaps` console warning — keep it silent.** The weathering masks are procedural;
 close-up surface detail comes from five tiling scans in `public/play/textures/*.webp` (rust, steel,
 enamel, grime, gunmetal — generated with OpenRouter `openai/gpt-image-2.5-sunburst`, made seamless
 offline), sampled on the CPU by `engine/surfaces.ts` into the same canvases, so colour, roughness and
 bump stay in register. If a scan fails to load the reader falls back to the fully procedural surface.
-All `/play` audio is live Web Audio synthesis (`engine/audio.ts`) — there are no audio files.
-Module list and HUD copy are in `src/content/play.ts`. `/arcade` and its NEXUS-9 boss battle were deleted on
-2026-08-25, along with `src/components/arcade/` and the `ARCADE MOTION` keyframe block in `globals.css`.
 Static export — `output: "export"`, `images: { unoptimized: true }`, `trailingSlash: true` — so there are
 no server routes, no runtime image optimization and no dynamic OG generation. `@/*` maps to `./src/*`.
 
+**`/` never loads three.js.** Its one WebGL canvas is `components/hangar/topo-field.ts`: raw WebGL1, one
+fullscreen triangle, the contour shader built from `/play`'s own GLSL noise (`noiseGLSL`, exported from
+`play/engine/shaders.ts`). GSAP is dynamic-imported after hydration by the motion layer. `/play`'s engine
+is dynamic-imported by `/play` only. Things `/` borrows from `/play`, deliberately kept three-free so the
+import is cheap: `engine/particles.ts` (Canvas 2D sparks and motes), `engine/audio.ts` (the Web Audio
+synth, itself dynamic-imported the first time sound is turned on), and `engine/weathering.ts` (the
+enamel wear generator — its three.js wrapper was split out into `engine/wear-maps.ts` for this reason; do
+not add a three import back to `weathering.ts`).
+
 **Content is data, never JSX.** Every file in `src/content/` exports plain typed constants and no
-markup. `src/components/sections.tsx` holds one exported renderer per home section (`AboutFigure`,
-`SkillsTable`, `ExperienceRecord`, `WorkProjectCards`, `ClientChips`,
-`PersonalProjects`, `OffTheClock`), and `src/app/page.tsx` composes them in a fixed order behind
-`SectionOpener`s numbered `§ 01`…`§ 06`. Copy changes go in `src/content/`; layout changes go in
-`sections.tsx`.
+markup. `src/components/sections.tsx` holds one exported renderer per home section (`AboutRecord`,
+`SkillsLoadout`, `ServiceRecord`, `Deployments`, `SideOps`, `OffDuty`), and `src/app/page.tsx` composes
+them in a fixed order, each in a `Bay` behind a HUD `SectionOpener` numbered `§ 01`…`§ 06`, then the
+uplink closer. Copy changes go in `src/content/`; layout changes go in `sections.tsx`. HUD furniture copy
+(status tag, coordinates, the play-entry card) is in `src/content/hud.ts`; `/play`'s is in `play.ts`.
 
-**Navigation has one source of truth.** `src/content/nav.ts` is the single ordered section list, and its
-ids *are* the `SectionOpener` ids on the page. `nav/section-nav.tsx` runs one rAF-throttled scroll
-computation to decide the active section and passes it to both the sticky top bar and `nav/dot-rail.tsx`
-— deliberately not an IntersectionObserver, which goes stale across anchor jumps. Anchor links only; no
-scroll hijacking, no smooth-scroll library.
+**Navigation has one source of truth.** `src/content/nav.ts` is the single ordered section list — id,
+number, label, title, lede, HUD code and module colour. Its ids *are* the opener anchors on `/`, and
+`play.ts` derives its six cartridges from it. `nav/section-nav.tsx` runs one rAF-throttled scroll
+computation to decide the active section and passes it to both the sticky top bar and
+`nav/section-rail.tsx` — deliberately not an IntersectionObserver, which goes stale across anchor jumps.
+Anchor links only; no scroll hijacking, no smooth-scroll library.
 
-**One framework-free engine with a thin React wrapper.** It keeps its animation loop out of React
-state, because a loop driven by `setState` re-renders the tree every tick for nothing:
+**One motion controller, found by data attribute.** `components/hangar/fx.tsx` (`HangarFx`, mounted once)
+owns every effect on `/`, and finds its targets by attribute, never by class:
+`data-reveal` (squash-and-stretch landing on entry), `data-decode` (glyph decode on headings),
+`data-lock="LABEL"` + `data-color` (the target-lock bracket frame on hover and keyboard focus, press
+squash, cursor sheen), `data-orbit` (a few particle motes while on screen). Framework-free engines keep
+their loops out of React state, because a loop driven by `setState` re-renders the tree every tick:
+`topo-field.ts` owns its own animation policy (30fps, IntersectionObserver, `visibilitychange`,
+reduced-motion still frame, DPR cap 1.5 fine / 1.25 coarse); the particle loop runs only while particles
+are alive. The BKK timecode (`hangar/clock.tsx`) is one shared interval writing to refs.
 
-- `components/wave/field.ts` (the Bayer-dither wave) + `wave-field.tsx`. **All animation policy lives in
-  the one shared `WaveClock`** — 30fps fixed step, IntersectionObserver visibility, `visibilitychange`
-  pausing, reduced-motion still frame — so every canvas on the page (hero field, `WaveRamp` section
-  boundaries, seeded stills) behaves identically and shares one rAF loop.
+**Sound on `/` is off by default, every visit.** `hangar/sound.ts` is the only door: the `Sfx` class is
+dynamic-imported and its AudioContext created inside the top-bar toggle's click handler, never on load.
+Every cue is a no-op while off. There are no audio files anywhere in the repo.
 
 **Tailwind v4, CSS-first.** There is no `tailwind.config.js`. Tokens, the `step-1`…`step-8` spacing
-scale, and the type utilities (`.display-giant`, `.display`, `.title`, `.body-copy`, `.caption`,
-`.figure-tag`, `.readout`, `.mono`) are all defined in `src/app/globals.css`. Use the named utilities
-rather than re-deriving their literal values.
+scale and the type utilities (`.display`, `.title-lg`, `.title`, `.body-copy`, `.lede`, `.pull-quote`,
+`.hud-label`, `.readout`, `.readout-sm`, `.numeral`) are defined in `src/app/globals.css`, along with the
+card, plate, furniture and layout classes. `/play` keeps its own scoped copy of the palette in
+`play.css` under `.play-root`. Use the named utilities rather than re-deriving their literal values.
 
-**The manual's furniture** is `components/manual.tsx`: `Figure` (the FIG-tagged frame that is the site's
-only container primitive), `SectionOpener`, `Marker`, `StackRow`. Figure numbers are load-bearing — prose
-refers to them — so they must stay stable, and figures are intentionally *not* uniform: each is sized by
-its contents. Do not turn any section into a grid of equal cards.
+**The furniture** is `components/hud.tsx`: `SectionOpener`, `Arrow`, `Barcode`, `Hatch`, `Corners`,
+`Tag`, `StackRow`, `Redacted`. Cards are `.card` plus a stock class (`card-bone`, `card-graphite`,
+`card-grey`, `card-sage`, `card-spot`); a card sets `--fg/--bg/--fg-dim/--line/--focus` and everything
+inside reads them. Hard-surface pieces are `.plate` (the play cartridge, the uplink console), painted by
+`hangar/wear.tsx`. FIG numbers survive as each card's designation (`Fig. 03.2`) and lock label — keep
+them stable. Cards are intentionally *not* uniform: each is sized by its contents and every section
+mixes a lead card with smaller ones. Do not turn any section into a grid of equal cards.
 
 ## Invariants that look like bugs — do not "fix" these
 
 Each is commented in place; the comment is the full rationale.
 
-- **`INKS` in `wave/field.ts` is declared lightest-first** (yellow → cyan → magenta). Reordering by
-  luminance puts ~50% magenta on the page.
-- **Wave coverage is `pow(v, gamma)`, never a multiplier.** A multiplier compresses the field inside one
-  ink band and renders the Bayer matrix itself — a flat checkerboard with no wave in it.
-- **Canvas backing stores are sized in device pixels while cells stay in CSS pixels** (`WaveField.measure`).
-  Skip it and the browser resamples the plate, softening every cell edge.
-- **`.dither-reveal[data-inked="true"]` sets `--reveal: 1.4` rather than `mask-image: none`.** Dropping
-  the mask changes Chromium's layer tree and elements behind it stop painting. Flatten a mask; never
-  remove it.
-- **`.dither-reveal` pairs `padding-top: step-3` with an equal negative `margin-top`.** It looks like
-  two edits that cancel, and they do cancel *in layout* — that is the point. The padding reserves the
-  ~9.5px the figure tag straddles above the frame, so the tag is masked inside the border box instead of
-  in the unclipped overflow, where Chromium leaves a stale dot raster mid-scroll and the tag tears along
-  the top rule. Deleting either half brings the tear back.
+- **Every effect on `/` is additive.** Server HTML is complete and visible. `fx.tsx` hides a card for its
+  entrance *only* if it is below the fold when the controller runs, so nothing already visible blinks
+  out; decode paints an overlay over real text that never leaves the DOM (or the accessibility tree).
+  The topo canvas starts transparent over a CSS survey grid, and plates are flat enamel until the wear
+  texture lands. A no-JS client sees the whole page.
 - **Reduced motion may change behaviour but never layout.** `DESIGN.md` records the real bug this came
-  from. Freeze what things *do*; leave the boxes alone.
-- **`--reveal` is `@property`-registered with `initial-value: 1`.** Every reveal is additive — a client
-  with no JS or no `@property` support sees fully-inked content, never a blank region.
+  from. Freeze what things *do*; leave the boxes alone. The reduced-motion CSS block contains only
+  durations. Verified on 2026-09-28: every section and card box is pixel-identical between normal,
+  reduced-motion and no-JS at 1440 and 390.
+- **Tweens end by clearing their transform** (`clearProps`) and a new state overwrites the old tween
+  (`overwrite: "auto"`). There are no idle loops on content — no breathing, no jitter. The one ambient
+  motion is the hero's contour field (and its motes), and both stop off screen.
+- **The target-lock frame re-measures every frame while held.** The card it holds may still be landing
+  or squashing; a one-shot measurement leaves the frame hanging off it.
+- **`--spot-text-bg` lifts a spot 12% toward white wherever it carries small ink type.** Every spot clears
+  AA with ink except magenta (4.3:1 → 4.8:1 lifted). Fills without type keep the pure spot.
+- **The status tag is `#2f63e6`, not `/play`'s `#3d7bff`** — white 13px type on `#3d7bff` is 3.9:1.
+- **`weathering.ts` must stay three-free** (see Architecture).
 
 ## Editorial constraints (from `PRODUCT.md`, non-negotiable)
 
@@ -139,15 +160,13 @@ Copy edits violate these by accident. They are about a real person's professiona
 
 ## Known dead code and open decisions
 
-- `src/content/systems.ts` has **zero importers** — orphaned by the redesign.
+- `src/content/systems.ts` has **zero importers** — orphaned by the first redesign.
 - `src/content/retrieval.ts` has **zero importers** — Ze cut Figs. 04.4, 04.5 and 04.6 (the two retrieval
   system figures and the Method figure) from § 04 on 2026-07-28 as duplicated against § 03. The content is
   kept: it is the most interview-relevant material in the tree, including the `pending` authoring
-  checklists, and the removal was about placement, not accuracy. `RetrievalFigures` and its § 04 block were
-  deleted with it.
-- `StackRow` in `src/components/manual.tsx:110` is **never called** — `RetrievalFigures` was its only
-  consumer. It is still part of the furniture vocabulary; keep it until the § 04 question is settled.
-- `Topbar` in `src/components/actions.tsx:38` is **never rendered**; `nav/section-nav.tsx` ships its own
-  `<header>`.
-- **Open:** `hero.word` in `src/content/profile.ts` is currently `"SATASUK"`. `"RETRIEVAL"` preserves an
-  earlier positioning decision. Ze has not settled it; do not settle it by default (`HANDOFF.md` §8).
+  checklists, and the removal was about placement, not accuracy.
+- `hudCopy.status` ("Open to remote roles") is the hero's blue tag, drawn from the closer's own line. If Ze
+  stops looking, change it there.
+- **Open:** `hero.word` in `src/content/profile.ts` is currently `"SATASUK"` — now the vertical masthead.
+  `"RETRIEVAL"` preserves an earlier positioning decision. Ze has not settled it; do not settle it by
+  default (`HANDOFF.md` §8).

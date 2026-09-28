@@ -50,7 +50,7 @@ function Tag({ children, tone = "" }: { children: React.ReactNode; tone?: string
 function About() {
   return (
     <>
-      <div data-card className="pp-card pp-photo">
+      <div data-card className="pp-card pp-photo crt">
         <img src={heroPlate.src} alt={heroPlate.alt} />
         <div className="pp-photo-meta">
           <span className="pp-mono">FIG. 00 — {heroPlate.label}</span>
