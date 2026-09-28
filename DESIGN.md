@@ -207,6 +207,9 @@ corner brackets snap in on an elastic, and the masthead decodes. After that, mot
   opener's tag as it lands; up to eight motes orbiting the ID card while the hero is on screen.
 - **Sound** — optional, off by default on every visit, one toggle in the top bar. `/play`'s synth: hover
   ticks, press clicks, a landing tick, decode chatter, a chirp on each opener, a low hangar bed.
+  Until the visitor answers it, a callout hangs off SND ~0.7s into each visit (`sound-hint.tsx`) and
+  stays through scrolling; "Not now", "Turn on" (or SND itself) and Escape answer it. It persists only
+  the answer, never the sound state.
 - **Rules.** Every effect is additive over complete server HTML: a card is hidden for its entrance only
   if it is below the fold when the controller starts. Tweens clear their transforms when done and new
   states overwrite old tweens — no looping jitter, no breathing. No CSS 3D flips. Native scroll only; the
