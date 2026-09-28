@@ -472,7 +472,7 @@ export function PlayExperience() {
             <span className="hud-mono">{muted ? "SND OFF" : "SND ON"}</span>
           </button>
           <Link href="/" className="hud-btn hud-print">
-            <span className="hud-mono">{playCopy.printEdition}</span>
+            <span className="hud-mono">{playCopy.homeEdition}</span>
             <Arrow />
           </Link>
         </div>
@@ -603,7 +603,7 @@ export function PlayExperience() {
           {phase === "failed" ? (
             <p className="boot-fail">
               This unit needs WebGL, and this browser did not give it one.{" "}
-              <Link href="/">The print edition works everywhere ↗</Link>
+              <Link href="/">{playCopy.homeFallback}</Link>
             </p>
           ) : (
             <button type="button" className="boot-btn" onClick={boot} disabled={phase !== "standby"}>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Azeret_Mono, Kanit } from "next/font/google";
 import "./globals.css";
 
@@ -6,7 +6,9 @@ import "./globals.css";
    letterforms, which is what gives the heavy weights their squared poster
    punch. See DESIGN.md § Typography. */
 const kanit = Kanit({
-  subsets: ["latin"],
+  /* Thai for the กรุงเทพฯ mark on the ID card. unicode-range keeps it lazy:
+     the Thai files load only on a page that prints Thai. */
+  subsets: ["latin", "thai"],
   weight: ["700", "800", "900"],
   display: "swap",
   variable: "--font-kanit",
@@ -36,6 +38,11 @@ export const metadata: Metadata = {
       "Backend systems, retrieval and agent tooling. A quest engine owned end to end, and what broke along the way.",
     type: "website",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#040507",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

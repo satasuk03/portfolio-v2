@@ -9,9 +9,11 @@
  *   bump       chips sit below the paint, so edges catch light
  *
  * Deterministic (seeded) and CPU-only; generated once at load.
+ *
+ * Deliberately three-free: `/` generates enamel plates with the same code for
+ * its hard-surface panels and must not pull three.js into its bundle. The
+ * three.js wrapper lives in wear-maps.ts.
  */
-
-import * as THREE from "three";
 
 // ── value noise ─────────────────────────────────────────────────────────────
 
@@ -311,16 +313,4 @@ export function sticker(
   wr.rou.fillRect(-w / 2, -h / 2, w, h);
   wr.rou.restore();
   flecks(wr, x, y, w, h, 0.9);
-}
-
-/** Wrap the three canvases as textures for a MeshStandardMaterial. */
-export function wearMaps(wr: Wear, aniso: number) {
-  const map = new THREE.CanvasTexture(wr.colC);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = aniso;
-  const roughnessMap = new THREE.CanvasTexture(wr.rouC);
-  roughnessMap.anisotropy = aniso;
-  const bumpMap = new THREE.CanvasTexture(wr.bmpC);
-  bumpMap.anisotropy = aniso;
-  return { map, roughnessMap, bumpMap };
 }

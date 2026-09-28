@@ -1,101 +1,71 @@
 "use client";
 
 /*
- * The hero's photograph plate.
+ * The hero's photograph, as an ID card: the frame in the About spot, the
+ * photo set as a duotone into it (CSS only — the file is a plain photograph),
+ * a static target reticle over the face, and the Based / Building readout.
  *
- * The plate ships the raw frame cut down to the left column's height; clicking
- * it opens a modal sheet with the full frame at reading size.
+ * Clicking opens a native <dialog> with the full-tone frame at reading size:
+ * ESC, focus trapping and page inertness come free, and a click on the
+ * backdrop closes it. `data-orbit` is where fx.tsx parks its few motes.
  */
 
 import { useRef } from "react";
-import { Redacted } from "@/components/manual";
+import { Corners, Redacted } from "@/components/hud";
+import { section } from "@/content/nav";
 import { heroPlate } from "@/content/profile";
 
 export function HeroPlate() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-
   const close = () => dialogRef.current?.close();
+  const s = section("about");
 
   return (
-    <figure className="frame relative bg-board">
-      <div className="absolute -top-px left-0 z-10 flex translate-y-[-50%] items-center gap-step-2 pl-step-3">
-        <span className="figure-tag bg-ink px-step-2 py-[0.2rem] text-paper">
-          Fig. 00
-        </span>
-        <span className="caption bg-paper px-step-2 text-ink-mid">
-          {heroPlate.label}
-        </span>
-      </div>
-
+    <figure className="card card-spot idcard" style={{ ["--spot" as string]: s.color }} data-orbit data-lock="FIG 00 · OPERATOR" data-color={s.color}>
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        aria-label={heroPlate.lightbox.enlarge}
-        className="group relative block w-full cursor-zoom-in"
+        aria-label={`${heroPlate.lightbox.enlarge} photograph`}
+        className="idcard-photo"
       >
-        {/* Cropped to the left column's height on desktop — The Crop Rule
-            applies to plates too. The face sits in the top fifth of the
-            frame, so the crop anchors there. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={heroPlate.src}
-          alt=""
-          className="block w-full lg:h-52 lg:object-cover lg:object-[50%_20%]"
-        />
-        <span className="figure-tag absolute right-step-2 bottom-step-2 bg-ink px-step-2 py-[0.2rem] text-paper opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
-          {heroPlate.lightbox.enlarge} +
+        <img src={heroPlate.src} alt="" fetchPriority="high" />
+        <span aria-hidden className="idcard-reticle">
+          <Corners />
+        </span>
+        <span className="tag tag-ink idcard-tag">Fig. 00 — {heroPlate.label}</span>
+        <span aria-hidden className="idcard-vert">
+          กรุงเทพฯ
         </span>
       </button>
 
-      <dl className="grid grid-cols-2 border-t-[3px] border-ink bg-paper">
-        {heroPlate.cells.map((cell, i) => (
-          <div
-            key={cell.term}
-            className={`px-step-3 py-step-3 ${
-              i > 0 ? "border-l-2 border-ink" : ""
-            }`}
-          >
-            <dt className="caption text-ink-mid">{cell.term}</dt>
-            <dd
-              className={`readout-sm mt-step-1 font-bold ${
-                cell.accent ? "text-cyan-deep" : "text-ink"
-              }`}
-            >
+      <dl className="idcard-cells">
+        {heroPlate.cells.map((cell) => (
+          <div key={cell.term}>
+            <dt className="hud-label">{cell.term}</dt>
+            <dd className="readout-sm">
               <Redacted text={cell.value} />
             </dd>
           </div>
         ))}
       </dl>
 
-      {/* Native <dialog>: ESC, focus trapping and page inertness come free.
-          A click landing on the dialog box itself (not its children) is a
-          backdrop click. */}
       <dialog
         ref={dialogRef}
         onClick={(e) => {
           if (e.target === dialogRef.current) close();
         }}
-        className="m-auto max-h-[92vh] max-w-[92vw] border-[3px] border-ink bg-paper p-0 backdrop:bg-ink/70"
+        className="lightbox"
       >
-        <div className="flex flex-wrap items-center gap-step-2 border-b-[3px] border-ink px-step-3 py-step-2">
-          <span className="figure-tag bg-ink px-step-2 py-[0.2rem] text-paper">
-            Fig. 00
-          </span>
-          <span className="caption text-ink-mid">{heroPlate.label}</span>
-          <button
-            type="button"
-            onClick={close}
-            className="figure-tag ml-auto border-2 border-ink px-step-2 py-[0.2rem] text-ink transition-colors duration-150 hover:bg-magenta hover:text-paper"
-          >
-            {heroPlate.lightbox.close} ✕
+        <div className="lightbox-bar">
+          <span className="tag tag-ink">Fig. 00</span>
+          <span className="hud-label">{heroPlate.label}</span>
+          <button type="button" onClick={close} className="hud-btn ml-auto">
+            <span className="hud-label">{heroPlate.lightbox.close} ✕</span>
           </button>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={heroPlate.src}
-          alt={heroPlate.alt}
-          className="block h-auto max-h-[78vh] w-auto max-w-full"
-        />
+        <img src={heroPlate.src} alt={heroPlate.alt} className="lightbox-img" />
       </dialog>
     </figure>
   );
