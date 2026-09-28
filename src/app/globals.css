@@ -880,6 +880,149 @@
 .eq[data-on="true"] i:nth-child(3) { transform: scaleY(0.7); transition-delay: 0.08s; }
 .eq[data-on="true"] i:nth-child(4) { transform: scaleY(0.4); transition-delay: 0.12s; }
 
+/* The first-visit sound hint (sound-hint.tsx): a card hung off SND by a
+   notch, with the target-lock brackets snapped around the toggle. Fixed, so
+   it never moves a box; above the bar, under the sparks and the lock frame.
+   Every animation is finite, and the reduced-motion rule collapses them. */
+.snd-hint {
+  --notch: calc(100% - 34px);
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  width: min(18.5rem, calc(100vw - 32px));
+  padding: 12px 16px 16px;
+  border-radius: 16px;
+  border: 1.5px solid var(--color-cyan);
+  background: var(--color-hull);
+  color: var(--color-hud);
+  box-shadow: 0 22px 44px -22px rgb(0 0 0 / 0.95), 0 0 0 1px rgb(4 5 7 / 0.9);
+  transform-origin: var(--notch) 0;
+  animation: snd-hint-in 0.55s var(--ease-spring) both;
+}
+.snd-hint[data-state="out"] {
+  animation: snd-hint-out 0.2s ease-in both;
+  pointer-events: none;
+}
+/* The notch: a square turned 45°, bordered on its two top edges only. */
+.snd-hint::before {
+  content: "";
+  position: absolute;
+  top: -7.5px;
+  left: calc(var(--notch) - 6.5px);
+  width: 13px;
+  height: 13px;
+  background: var(--color-hull);
+  border: 1.5px solid var(--color-cyan);
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 3px 0 0;
+  transform: rotate(45deg);
+}
+.snd-hint-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.snd-hint-title {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.0625rem;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.snd-hint-body {
+  margin-top: 6px;
+  color: var(--color-hud-dim);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+.snd-hint-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.snd-hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.35s var(--ease-spring), background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.snd-hint-btn:hover {
+  transform: translateY(-1px);
+}
+.snd-hint-on {
+  background: var(--color-cyan);
+  color: var(--color-ink);
+}
+.snd-hint-on:hover {
+  background: var(--color-hud);
+}
+.snd-hint-no {
+  border-color: rgb(233 228 214 / 0.35);
+  background: transparent;
+  color: var(--color-hud);
+}
+.snd-hint-no:hover {
+  border-color: var(--color-hud);
+}
+
+.snd-hint-lock {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  pointer-events: none;
+  animation: snd-lock-in 0.7s var(--ease-spring) both;
+}
+.snd-hint-lock[data-state="out"] {
+  animation: snd-hint-out 0.2s ease-in both;
+}
+.snd-hint-lock i {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border: 0 solid var(--color-cyan);
+}
+.snd-hint-lock .tl { top: 0; left: 0; border-top-width: 2.5px; border-left-width: 2.5px; border-top-left-radius: 4px; }
+.snd-hint-lock .tr { top: 0; right: 0; border-top-width: 2.5px; border-right-width: 2.5px; border-top-right-radius: 4px; }
+.snd-hint-lock .bl { bottom: 0; left: 0; border-bottom-width: 2.5px; border-left-width: 2.5px; border-bottom-left-radius: 4px; }
+.snd-hint-lock .br { bottom: 0; right: 0; border-bottom-width: 2.5px; border-right-width: 2.5px; border-bottom-right-radius: 4px; }
+/* One ping off the toggle, three times, then still. */
+.snd-hint-lock::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--color-cyan);
+  opacity: 0;
+  animation: snd-ping 1.5s var(--ease-out-expo) 0.45s 3;
+}
+
+@keyframes snd-hint-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.94); }
+}
+@keyframes snd-hint-out {
+  to { opacity: 0; transform: translateY(-4px) scale(0.98); }
+}
+@keyframes snd-lock-in {
+  from { opacity: 0; transform: scale(1.7); }
+}
+@keyframes snd-ping {
+  from { opacity: 0.85; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.55, 1.9); }
+}
+
 .topbar-panel {
   position: absolute;
   inset: 100% 0 auto;
@@ -2036,6 +2179,8 @@
   }
   .topbar,
   .rail,
+  .snd-hint,
+  .snd-hint-lock,
   .fx-layer,
   .lock,
   .topo,

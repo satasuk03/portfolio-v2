@@ -15,6 +15,17 @@ export const hudCopy = {
   /* The unit designation /play prints on its HUD. */
   unit: "S-03",
   sound: { on: "SND ON", off: "SND OFF", labelOn: "Sound on. Turn off", labelOff: "Sound off. Turn on" },
+  /* The first-visit callout that points at SND (sound-hint.tsx). Every cue it
+     names is real: the synth's hover ticks and press clicks, and the music
+     bed, which sits well under them. */
+  soundHint: {
+    tag: "SND",
+    kicker: "Optional",
+    title: "This page has sound",
+    body: "Hover ticks, key clicks and a low music bed. Off until you turn it on.",
+    on: "Turn on",
+    dismiss: "Not now",
+  },
   scrollCue: "Scroll",
   playEntry: {
     /* The one prominent way into /play. Every spec below is true of the
