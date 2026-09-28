@@ -9,9 +9,8 @@ export const profile = {
      LinkedIn self-description ("grew into Technical Lead"), never a real
      appointment. Every ownership fact underneath it is kept; the title is not
      asserted anywhere on the site. */
-  /* Kept in step with `hero.tail` below — the running head and the line under
-     the knockout word are both in the first viewport, so they cannot disagree.
-     Change one, change the other. */
+  /* The hero's visible h1 line. One string, so the top bar, the h1 and the
+     footer cannot disagree. */
   role: "Senior Software Engineer, AI Solutionist",
   location: "Bangkok, Thailand",
   availability: "Remote",
@@ -25,24 +24,18 @@ export const profile = {
 } as const;
 
 /**
- * The first viewport. `word` is knocked out of the paper sheet and `tail`
- * completes the sentence beneath it, so the two must read as one line. `spoken`
- * is what a screen reader gets, since the knockout is decorative SVG.
+ * The first viewport. `word` is the giant vertical masthead — decorative, so
+ * it is aria-hidden and `spoken` is what a screen reader gets as the h1's
+ * opening. The visible h1 line under it is `profile.role`, so the masthead,
+ * the running head and the headline can never disagree about the role.
  */
 export const hero = {
   word: "SATASUK",
-  /* Renders uppercase (.title, The Uppercase Ceiling Rule), so it stays a
-     label — the warm first-person line lives in `home.standfirst` below,
-     where sentence-case prose belongs. */
-  tail: "— senior software engineer, AI Solutionist.",
-  spoken: "Satasuk Viparksinlapin — senior software engineer, AI Solutionist.",
-  /* Unnumbered — the photo plate carries Fig. 00, and one figure number may
-     only ever point at one thing. */
-  figureCaption: "The builder",
+  spoken: "Satasuk Viparksinlapin —",
 } as const;
 
 /**
- * The standfirst. First person and in his own voice — the giant knockout above
+ * The standfirst. First person and in his own voice — the giant masthead beside
  * it prints the formal name, so "Hi, I'm Zeze" lands as the human gloss on it.
  *
  * If a seniority signal is ever wanted here, use a start year ("since 2019"),
@@ -57,9 +50,8 @@ export const home = {
 } as const;
 
 /**
- * The readout stack in Fig. 01, filling the column the 68ch prose measure
- * leaves empty on desktop. The Mono Owns Measurement Rule: these are the
- * site's only large numerals.
+ * The readout cards in § 01, beside the lead card. Mono owns measurement:
+ * these are the page's only large mono numerals.
  *
  * The production-products count is DERIVED from the array that renders § 04,
  * so a project added or removed can never leave a stale count on the page. Do
@@ -98,17 +90,17 @@ export const about = {
     "I'm a senior software engineer in Bangkok. Specialize in: backend, AI Engineering, agent workflow orchestration, and product engineering.",
     "From solo coding to ownership. I built a quest engine by hand. Then I owned a 70+ module codebase. Now I've started a consumer AI product of my own and shipped it live.",
   ],
-  /* Closes Fig. 01, directly under the "I'd rather delete a system than defend
-     it" line — his own vernacular for the idea, then the canonical source for
-     it. Set sentence case, not uppercase: The Uppercase Ceiling Rule reserves
-     caps for display, titles, captions and tags, and this is quoted prose. */
+  /* Closes § 01 — the canonical source for the idea the paragraphs apply. Set
+     sentence case, not uppercase: caps are for display, titles and HUD tags,
+     and this is quoted prose. */
   epigraph: {
     text: "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
     attribution: "Antoine de Saint-Exupéry",
   },
 } as const;
 
-/** The raw photograph plate in the hero's opaque sheet. Ships full tone. */
+/** The photograph plate in the hero — the ID card. The file ships full tone,
+ *  the CRT glass is CSS. */
 export const heroPlate = {
   src: "/images/me.webp",
   alt: "Satasuk Viparksinlapin",
