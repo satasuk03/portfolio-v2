@@ -797,8 +797,6 @@ html.play-lock body {
   height: 100%;
   object-fit: cover;
   object-position: 50% 30%;
-  filter: grayscale(1) contrast(1.35) brightness(1.05);
-  mix-blend-mode: multiply;
 }
 .pp-photo-meta {
   position: absolute;
@@ -807,6 +805,7 @@ html.play-lock body {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  z-index: 2;
   color: var(--ink);
 }
 .pp-photo-meta .pp-mono {
