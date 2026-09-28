@@ -45,7 +45,15 @@ at the top of `src/app/page.tsx`. It was written against what shipped.
 
 ## Architecture
 
-**One route.** `/` (`src/app/page.tsx`). `/arcade` and its NEXUS-9 boss battle were deleted on
+**Two routes.** `/` (`src/app/page.tsx`), the print edition, and `/play` (`src/app/play/page.tsx`), the
+playable edition added 2026-09-28 — a three.js + GSAP field unit whose panels import the same
+`src/content` data, so the two editions cannot disagree on facts. three.js and GSAP are back as
+dependencies **for `/play` only**: the engine in `src/components/play/engine/` is dynamic-imported, so `/`
+never loads it. `/play` is the one deliberately dark surface; its tokens live in `play.css`, scoped under
+`.play-root`. The centrepiece is the card reader in `engine/reader.ts` (procedural weathering in
+`weathering.ts`, live LCD in `screen.ts`); its EJECT, CHG, SND lever and knobs are real raycast
+controls. All `/play` audio is live Web Audio synthesis (`engine/audio.ts`) — there are no audio files.
+Module list and HUD copy are in `src/content/play.ts`. `/arcade` and its NEXUS-9 boss battle were deleted on
 2026-08-25, along with `src/components/arcade/` and the `ARCADE MOTION` keyframe block in `globals.css`.
 Static export — `output: "export"`, `images: { unoptimized: true }`, `trailingSlash: true` — so there are
 no server routes, no runtime image optimization and no dynamic OG generation. `@/*` maps to `./src/*`.
