@@ -52,7 +52,14 @@ dependencies **for `/play` only**: the engine in `src/components/play/engine/` i
 never loads it. `/play` is the one deliberately dark surface; its tokens live in `play.css`, scoped under
 `.play-root`. The centrepiece is the card reader in `engine/reader.ts` (procedural weathering in
 `weathering.ts`, live LCD in `screen.ts`); its EJECT, CHG, SND lever and knobs are real raycast
-controls. All `/play` audio is live Web Audio synthesis (`engine/audio.ts`) — there are no audio files.
+controls. Its face is laid out in the `L` table, and in development every part registers a footprint
+that `checkLayout` tests against every other and against the face outline. **A collision prints a
+`[reader] layout overlaps` console warning — keep it silent.** The weathering masks are procedural;
+close-up surface detail comes from five tiling scans in `public/play/textures/*.webp` (rust, steel,
+enamel, grime, gunmetal — generated with OpenRouter `openai/gpt-image-2.5-sunburst`, made seamless
+offline), sampled on the CPU by `engine/surfaces.ts` into the same canvases, so colour, roughness and
+bump stay in register. If a scan fails to load the reader falls back to the fully procedural surface.
+All `/play` audio is live Web Audio synthesis (`engine/audio.ts`) — there are no audio files.
 Module list and HUD copy are in `src/content/play.ts`. `/arcade` and its NEXUS-9 boss battle were deleted on
 2026-08-25, along with `src/components/arcade/` and the `ARCADE MOTION` keyframe block in `globals.css`.
 Static export — `output: "export"`, `images: { unoptimized: true }`, `trailingSlash: true` — so there are

@@ -34,6 +34,7 @@ import { finalShader, floorFrag, floorVert, shockFrag, uvVert } from "./shaders"
 import { readFonts } from "./textures";
 import { CART, buildCartridge, buildFloorRings, makeMaterials, setGlow, type Cartridge } from "./models";
 import { BODY, HOVER_Y, INSERT_Y, SCREEN_Y, SLOT_TOP, buildReader, type Reader } from "./reader";
+import { loadSurfaces } from "./surfaces";
 
 export type Rect = { x: number; y: number; w: number; h: number };
 export type FrameInfo = {
@@ -190,6 +191,8 @@ export class Stage {
   // ── setup ─────────────────────────────────────────────────────────────────
 
   async init() {
+    // The reader's surface scans load while the fonts settle.
+    const surfaces = loadSurfaces();
     await document.fonts.ready;
     const fonts = readFonts();
     // Canvas text only uses a face once it is loaded; ask for the exact weights.
@@ -219,7 +222,7 @@ export class Stage {
     this.buildLights();
     this.buildFloor();
     const mats = makeMaterials();
-    this.reader = buildReader(fonts, aniso, mats, !this.low, this.modules.length);
+    this.reader = buildReader(fonts, aniso, mats, !this.low, this.modules.length, await surfaces);
     this.scene.add(this.reader.root);
     this.carts = this.modules.map((m) => {
       const c = buildCartridge(m, fonts, aniso, mats);

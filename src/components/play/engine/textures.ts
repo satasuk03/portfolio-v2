@@ -1,6 +1,7 @@
 /*
  * Every surface detail on the unit is drawn here, into canvases, at runtime —
- * panel seams, vents, hazard bands, cartridge labels. No image assets, and
+ * panel seams, vents, hazard bands, cartridge labels. The only image assets
+ * in the engine are the reader's surface scans (surfaces.ts), and
  * the labels are typeset in the site's own faces (Kanit / Azeret Mono), read
  * from the CSS variables next/font writes onto <html>.
  */
