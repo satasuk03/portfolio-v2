@@ -104,7 +104,8 @@ dynamic-imported and its AudioContext created inside the top-bar toggle's click 
 Every cue is a no-op while off. The one audio file is the music bed
 (`public/audio/`), loaded the first time sound turns on. `hangar/sound-hint.tsx` is a first-visit callout
 pointing at SND; its "Turn on" is the only other click handler allowed to call `sound.toggle()`. It stores
-one `localStorage` flag (`hangar:snd-hint`) that it was shown — never the sound state.
+one `localStorage` flag (`hangar:snd-hint`) once the visitor answers it — never the sound state. It does
+not close on scroll, outside clicks or a timer; that is deliberate (Ze's call).
 
 **Tailwind v4, CSS-first.** There is no `tailwind.config.js`. Tokens, the `step-1`…`step-8` spacing
 scale and the type utilities (`.display`, `.title-lg`, `.title`, `.body-copy`, `.lede`, `.pull-quote`,

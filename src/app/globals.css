@@ -880,7 +880,7 @@
 .eq[data-on="true"] i:nth-child(3) { transform: scaleY(0.7); transition-delay: 0.08s; }
 .eq[data-on="true"] i:nth-child(4) { transform: scaleY(0.4); transition-delay: 0.12s; }
 
-/* The first-visit sound hint (sound-hint.tsx): a card hung off SND by a
+/* The sound hint (sound-hint.tsx): a card hung off SND by a
    notch, with the target-lock brackets snapped around the toggle. Fixed, so
    it never moves a box; above the bar, under the sparks and the lock frame.
    Every animation is finite, and the reduced-motion rule collapses them. */
@@ -975,6 +975,14 @@
 }
 .snd-hint-no:hover {
   border-color: var(--color-hud);
+}
+
+/* The phone menu drops over the same spot; the hint steps aside while it is
+   open and comes back when it closes. Not a dismissal — the visitor hasn't
+   answered. */
+.topbar:has(.topbar-panel) .snd-hint,
+.topbar:has(.topbar-panel) .snd-hint-lock {
+  visibility: hidden;
 }
 
 .snd-hint-lock {

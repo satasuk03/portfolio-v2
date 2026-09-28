@@ -4,21 +4,21 @@
  * THE SOUND HINT — a one-time callout that points at SND on a first visit.
  *
  * Sound stays off by default on every visit (see sound.ts); this only tells a
- * new visitor the page has any. What persists is that the hint was shown,
- * never the sound state itself: storage holds one flag, written the moment the
- * hint appears, so it shows once per browser. Where storage throws (private
- * mode, blocked site data) it falls back to once per page load.
+ * new visitor the page has any. What persists is that the visitor answered it,
+ * never the sound state itself: storage holds one flag, written on the answer,
+ * so the hint comes back on each visit until they do. Where storage throws
+ * (private mode, blocked site data) it falls back to once per page load.
  *
  * Rules it keeps:
- *   - Additive. It renders nothing on the server and nothing until the hero
- *     intro has played, and it is a fixed overlay, so no box on the page moves.
+ *   - Additive. It renders nothing on the server, arrives shortly after
+ *     hydration, and is a fixed overlay, so no box on the page moves.
  *   - It never takes focus. It sits in the DOM straight after the toggle, so
  *     Tab from SND reaches its buttons, and the toggle is described by it
  *     while it is up.
- *   - It gets out of the way on its own: any answer, Escape, a click
- *     elsewhere, scrolling on by most of a viewport, or a quiet timeout
- *     (paused while the pointer or focus is on it). Sound turned on from
- *     anywhere dismisses it.
+ *   - It stays until answered, pinned under the bar while the visitor scrolls
+ *     and reads: "Not now", "Turn on", or sound turned on from SND itself.
+ *     Escape counts as "Not now" for keyboard users. It steps aside (hidden,
+ *     not dismissed) while the phone menu is open over it — see the CSS.
  *   - "Turn on" calls sound.toggle() from its own click handler, which is a
  *     user gesture, so the AudioContext rule in sound.ts still holds.
  *   - Its motion is CSS, finite (the ping runs three times), and collapses to
@@ -30,10 +30,10 @@ import { hudCopy } from "@/content/hud";
 import { sound } from "./sound";
 
 const KEY = "hangar:snd-hint";
-/* After the hero's authored intro (~2.4s) so the two never compete. */
-const SHOW_AT = 2800;
-const LINGER = 15000;
-const LINGER_AFTER_HOVER = 6000;
+/* Early in the hero intro, not after it: a beat past first paint so it reads
+   as arriving rather than as part of the layout. */
+const SHOW_AT = 700;
+const MIN_DELAY = 250;
 const EXIT = 220;
 const EDGE = 16;
 const GAP = 14;
@@ -54,7 +54,7 @@ function markSeen() {
   try {
     window.localStorage.setItem(KEY, "seen");
   } catch {
-    /* Storage blocked: the module flag keeps it to once per load. */
+    /* Storage blocked: the module flag keeps it answered for this load. */
   }
 }
 
@@ -70,11 +70,13 @@ export function SoundHint({ anchor }: { anchor: RefObject<HTMLButtonElement | nu
   const bodyId = `${id}-body`;
   const titleId = `${id}-title`;
 
+  /* Every way out is an answer, so every way out records it. */
   const dismiss = useCallback(() => {
+    markSeen();
     setPhase((p) => (p === "shown" ? "leaving" : p));
   }, []);
 
-  // Arm: first visit, sound still off, tab visible, after the hero intro.
+  // Arm: not yet answered, sound still off, tab visible.
   useEffect(() => {
     if (seen() || sound.on) return;
     let timer = 0;
@@ -84,9 +86,8 @@ export function SoundHint({ anchor }: { anchor: RefObject<HTMLButtonElement | nu
       timer = window.setTimeout(() => {
         const b = anchor.current;
         if (sound.on || seen() || !b || b.getBoundingClientRect().width === 0) return;
-        markSeen();
         setPhase("shown");
-      }, Math.max(0, SHOW_AT - performance.now()));
+      }, Math.max(MIN_DELAY, SHOW_AT - performance.now()));
     };
     if (document.hidden) document.addEventListener("visibilitychange", arm);
     else arm();
@@ -96,7 +97,7 @@ export function SoundHint({ anchor }: { anchor: RefObject<HTMLButtonElement | nu
     };
   }, [anchor]);
 
-  // While shown: keep it hung off the toggle, and listen for every way out.
+  // While shown: keep it hung off the toggle, and listen for an answer.
   // A layout effect, so the first paint already has it in place.
   useLayoutEffect(() => {
     if (phase !== "shown") return;
@@ -131,51 +132,20 @@ export function SoundHint({ anchor }: { anchor: RefObject<HTMLButtonElement | nu
     ro.observe(b);
     ro.observe(box);
 
-    const startY = window.scrollY;
-    const onScroll = () => {
-      if (Math.abs(window.scrollY - startY) > window.innerHeight * 0.8) dismiss();
-    };
+    // Escape with the phone menu open belongs to the menu, not to the hint.
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dismiss();
+      if (e.key === "Escape" && !document.getElementById("section-menu")) dismiss();
     };
-    // Click, not pointerdown: a touch that starts a scroll is not an answer,
-    // and a keyboard activation elsewhere (the menu button) still counts.
-    const onClick = (e: MouseEvent) => {
-      const t = e.target as Node | null;
-      if (t && !box.contains(t) && !b.contains(t)) dismiss();
-    };
-
-    let linger = window.setTimeout(dismiss, LINGER);
-    const hold = () => clearTimeout(linger);
-    const resume = () => {
-      if (box.matches(":hover") || box.contains(document.activeElement)) return;
-      clearTimeout(linger);
-      linger = window.setTimeout(dismiss, LINGER_AFTER_HOVER);
-    };
-    const onFocusOut = () => requestAnimationFrame(resume);
 
     const unsub = sound.subscribe((on) => on && dismiss());
     window.addEventListener("resize", schedule);
-    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("keydown", onKey);
-    document.addEventListener("click", onClick, true);
-    box.addEventListener("pointerenter", hold);
-    box.addEventListener("pointerleave", resume);
-    box.addEventListener("focusin", hold);
-    box.addEventListener("focusout", onFocusOut);
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(linger);
       ro.disconnect();
       unsub();
       window.removeEventListener("resize", schedule);
-      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("keydown", onKey);
-      document.removeEventListener("click", onClick, true);
-      box.removeEventListener("pointerenter", hold);
-      box.removeEventListener("pointerleave", resume);
-      box.removeEventListener("focusin", hold);
-      box.removeEventListener("focusout", onFocusOut);
     };
   }, [phase, anchor, dismiss]);
 
