@@ -1,5 +1,6 @@
 /*
- * Sound on `/` — off by default, one toggle, no audio files.
+ * Sound on `/` — off by default, one toggle. The only audio file is the
+ * music bed, and it loads the first time the visitor turns sound on.
  *
  * The synth is /play's `Sfx` (engine/audio.ts), dynamic-imported the first
  * time the visitor turns sound on, so a visitor who never does downloads none
@@ -34,8 +35,8 @@ export const sound = {
     if (next && sfx) {
       sfx.init();
       sfx.setMuted(false);
-      // The hangar bed, well under the cues — the page is for reading.
-      sfx.ambientOn(0.35, 2.5);
+      // The music bed, well under the cues — the page is for reading.
+      sfx.musicOn(0.8, 2.5);
     } else sfx?.setMuted(true);
     on = next;
     if (on) sfx?.select();

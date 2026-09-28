@@ -2,7 +2,7 @@
 
 /*
  * The hero's photograph, as an ID card: the frame in the About spot, the
- * photo set as a duotone into it (CSS only — the file is a plain photograph),
+ * photo in its own colour behind CRT glass (CSS only — see `.crt`),
  * a static target reticle over the face, and the Based / Building readout.
  *
  * Clicking opens a native <dialog> with the full-tone frame at reading size:
@@ -26,7 +26,7 @@ export function HeroPlate() {
         type="button"
         onClick={() => dialogRef.current?.showModal()}
         aria-label={`${heroPlate.lightbox.enlarge} photograph`}
-        className="idcard-photo"
+        className="idcard-photo crt"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={heroPlate.src} alt="" fetchPriority="high" />

@@ -13,7 +13,8 @@
  *   order, then the uplink. Pick one; it launches, flips, slams into the bay,
  *   and its panel opens. Hold the core to overcharge it.
  * FEEL: Every motion anticipates, overshoots and rebounds. Impacts hit-stop,
- *   shake (trauma²), flash and ripple the map. All sound is synthesised live.
+ *   shake (trauma²), flash and ripple the map. Every cue is synthesised live;
+ *   the one audio file is the music bed.
  * FORM: Canvas-first, with the module bay as the DOM path in — every panel is
  *   reachable by button and by keys 1–7 without touching the 3D.
  */

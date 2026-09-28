@@ -1,9 +1,14 @@
 /*
- * Every sound on /play is synthesised in real time — there is no audio file.
+ * Every cue on /play is synthesised in real time. The one audio file is the
+ * music bed, which replaces the synth drone as the background.
  *
  * Graph:  voices → sfxBus ─┬→ comp → master → destination
- *                          └→ reverbSend → convolver ┘
- *         ambient → ambBus ┘
+ *                          └→ reverbSend → convolver ┘      ↑
+ *         ambient → ambBus ┘                                │
+ *         <audio> → musicBus ───────────────────────────────┘
+ *
+ * The music skips the compressor on purpose: it is mastered hot, and the cues
+ * would pump it every time one fired.
  *
  * The AudioContext is created on the first user gesture (`init`), never on
  * load: browsers block it anyway, and a page that hums before you touch it is
@@ -17,6 +22,9 @@ export class Sfx {
   private master!: GainNode;
   private sfxBus!: GainNode;
   private ambBus!: GainNode;
+  private musicBus!: GainNode;
+  private music: HTMLAudioElement | null = null;
+  private musicWanted = false;
   private reverbSend!: GainNode;
   private noiseBuf!: AudioBuffer;
   private charge: { oscs: OscillatorNode[]; filter: BiquadFilterNode; gain: GainNode; lfo: OscillatorNode; lfoGain: GainNode } | null = null;
@@ -74,11 +82,17 @@ export class Sfx {
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
 
     this.startAmbient();
+    this.startMusic();
 
     document.addEventListener("visibilitychange", () => {
       if (!this.ctx) return;
-      if (document.hidden) void this.ctx.suspend();
-      else void this.ctx.resume();
+      if (document.hidden) {
+        void this.ctx.suspend();
+        this.music?.pause();
+      } else {
+        void this.ctx.resume();
+        this.syncMusic();
+      }
     });
   }
 
@@ -88,6 +102,7 @@ export class Sfx {
     const t = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(t);
     this.master.gain.setTargetAtTime(m ? 0 : 0.9, t, 0.06);
+    this.syncMusic();
   }
 
   // ── primitives ────────────────────────────────────────────────────────────
@@ -307,6 +322,43 @@ export class Sfx {
     const t = this.ctx.currentTime;
     this.ambBus.gain.cancelScheduledValues(t);
     this.ambBus.gain.setTargetAtTime(0.55 * level, t, fade / 3);
+  }
+
+  // ── music bed ─────────────────────────────────────────────────────────────
+
+  /* Created inside init(), so the element's first play() lands in the same
+     user gesture that unlocked the context — Safari refuses it otherwise. It
+     starts silent; musicOn() fades it up. */
+  private startMusic() {
+    const ctx = this.ctx!;
+    const el = new Audio("/audio/gravitys-longest-breath.mp3");
+    el.loop = true;
+    el.preload = "auto";
+    this.musicBus = ctx.createGain();
+    this.musicBus.gain.value = 0;
+    ctx.createMediaElementSource(el).connect(this.musicBus);
+    this.musicBus.connect(this.master);
+    this.music = el;
+    void el.play().catch(() => {});
+  }
+
+  /** Keep the element playing only while it can be heard. */
+  private syncMusic() {
+    const el = this.music;
+    if (!el) return;
+    if (this.musicWanted && !this.muted && !document.hidden) void el.play().catch(() => {});
+    else el.pause();
+  }
+
+  /** Fade the music bed up. `level` 1 is the default background level. */
+  musicOn(level = 1, fade = 3) {
+    if (!this.ctx) return;
+    this.musicWanted = true;
+    this.syncMusic();
+    const t = this.ctx.currentTime;
+    this.musicBus.gain.cancelScheduledValues(t);
+    // ~-14 dB: under the cues and well under reading.
+    this.musicBus.gain.setTargetAtTime(0.2 * level, t, fade / 3);
   }
 
   // ── the vocabulary ────────────────────────────────────────────────────────

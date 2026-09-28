@@ -1155,6 +1155,58 @@
   color: var(--color-cyan);
 }
 
+/* CRT glass over a full-colour photo: the photo keeps its own colour, and the
+   tube is all overlay — scanlines and an aperture grille (::before), a slow
+   rolling refresh band, flicker and vignette (::after). Put it on the photo's
+   positioned frame; anything that must read above the glass takes z-index 2.
+   Additive: strip the overlays and the plain photograph is what is left. */
+.crt {
+  isolation: isolate;
+}
+.crt > img {
+  filter: contrast(1.06) saturate(1.08);
+}
+.crt::before,
+.crt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.crt::before {
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.26) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(
+      to right,
+      rgb(255 40 40 / 0.07) 0 1px,
+      rgb(40 255 90 / 0.05) 1px 2px,
+      rgb(40 90 255 / 0.07) 2px 3px
+    );
+}
+.crt::after {
+  background:
+    linear-gradient(to bottom, transparent 0, rgb(255 255 255 / 0.07) 50%, transparent 100%) 0 -30% / 100% 30% no-repeat,
+    radial-gradient(ellipse at center, transparent 58%, rgb(0 0 0 / 0.42) 100%);
+  box-shadow:
+    inset 0 0 28px rgb(0 0 0 / 0.55),
+    inset 0 0 2px rgb(255 255 255 / 0.18);
+  animation:
+    crt-roll 7s linear infinite,
+    crt-flicker 0.12s steps(2) infinite;
+}
+@keyframes crt-roll {
+  to {
+    background-position: 0 130%, 0 0;
+  }
+}
+@keyframes crt-flicker {
+  50% {
+    opacity: 0.9;
+  }
+}
+
 /* The ID card. */
 .idcard {
   padding: 10px;
@@ -1168,7 +1220,7 @@
   border: 0;
   padding: 0;
   border-radius: 16px;
-  background: var(--spot);
+  background: #000;
   cursor: zoom-in;
 }
 .idcard-photo img {
@@ -1178,8 +1230,6 @@
   height: 100%;
   object-fit: cover;
   object-position: 50% 22%;
-  filter: grayscale(1) contrast(1.3) brightness(1.06);
-  mix-blend-mode: multiply;
   transition: transform 0.6s var(--ease-out-expo);
 }
 .idcard-photo:hover img {
@@ -1191,6 +1241,7 @@
   top: 6%;
   width: 24%;
   height: 38%;
+  z-index: 2;
   color: var(--color-ink);
 }
 .idcard-reticle .corners i {
@@ -1201,11 +1252,13 @@
   position: absolute;
   left: 10px;
   bottom: 10px;
+  z-index: 2;
 }
 .idcard-vert {
   position: absolute;
   right: 12px;
   top: 12px;
+  z-index: 2;
   writing-mode: vertical-rl;
   font-family: var(--font-display);
   font-weight: 800;

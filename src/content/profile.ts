@@ -99,8 +99,8 @@ export const about = {
   },
 } as const;
 
-/** The photograph plate in the hero — the ID card. The file ships full tone;
- *  the duotone is CSS. */
+/** The photograph plate in the hero — the ID card. The file ships full tone,
+ *  the CRT glass is CSS. */
 export const heroPlate = {
   src: "/images/me.webp",
   alt: "Satasuk Viparksinlapin",
