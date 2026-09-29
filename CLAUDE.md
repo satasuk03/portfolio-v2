@@ -50,11 +50,18 @@ of `src/app/page.tsx` and `src/app/play/page.tsx`.
 **Two routes, one world.** `/` (`src/app/page.tsx`) is the **reading edition** — the professional
 record, built for a 30-second recruiter skim and a 15-minute engineer read. `/play`
 (`src/app/play/page.tsx`) is the **playable edition** — a three.js + GSAP field unit whose panels import
-the same `src/content` data. Both are set in the same hangar: black ground, blue topographic contours,
-CBRPNK rounded cards in solid spot colours, weathered cream enamel. `/` reads first; `/play` is the toy.
+the same `src/content` data. Both are set in the same hangar: black ground, blue light lines (the
+contour field on `/`, the desk's conduits on `/play`), CBRPNK rounded cards in solid spot colours,
+weathered cream enamel. `/` reads first; `/play` is the toy.
 `/play`'s centrepiece is the card reader in `play/engine/reader.ts` (procedural weathering in
-`weathering.ts`, live LCD in `screen.ts`); its EJECT, CHG, SND lever and knobs are real raycast controls,
-and every panel is also reachable from the DOM module bay and keys 1–7. Its tokens live in `play.css`,
+`weathering.ts`, live LCD in `screen.ts`), standing on the desk in `play/engine/table.ts`: a plane bigger
+than any frame, conduits whose energy is one shader keyed on network distance from the reader (packets
+flow in, surges flow out), a few greebles, and one lit pad per card. The pad layout depends on the
+viewport's shape (`deckLayout`: an arc when wide, 2-3-2 rows when tall) and the network is rebuilt when
+it changes. The wide camera is solved on every resize to fit the reader and every pad into the region the
+HUD leaves free — don't hand-tune a distance. Picking a card lifts it, flies it to the slot, feeds it in
+and latches; then the camera goes in to the display. Its EJECT, CHG, SND lever and knobs are real raycast
+controls, and every panel is also reachable from the DOM module bay and keys 1–7. Its tokens live in `play.css`,
 scoped under `.play-root`. `/arcade` and its NEXUS-9 boss battle were deleted on 2026-08-25.
 The reader's face is laid out in the `L` table, and in development every part registers a footprint
 that `checkLayout` tests against every other and against the face outline. **A collision prints a
@@ -139,6 +146,8 @@ Each is commented in place; the comment is the full rationale.
   AA with ink except magenta (4.3:1 → 4.8:1 lifted). Fills without type keep the pure spot.
 - **The status tag is `#2f63e6`, not `/play`'s `#3d7bff`** — white 13px type on `#3d7bff` is 3.9:1.
 - **`weathering.ts` must stay three-free** (see Architecture).
+- **`play.css` resets `.play-root .bay`.** `globals.css` owns a `.bay` (the home section wrapper, with a
+  deep top padding); without the reset it is an invisible box over the desk that eats the front cards' hover.
 
 ## Editorial constraints (from `PRODUCT.md`, non-negotiable)
 

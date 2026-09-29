@@ -228,26 +228,3 @@ export function cartridgeBack(m: PlayModule, fonts: Fonts, aniso: number) {
   grain(ctx, W, H, 10, 99);
   return tex(c, aniso);
 }
-
-// ── pedestal band: hazard stripe wrapped round the plinth ──────────────────
-
-export function plinthTexture(fonts: Fonts, aniso: number) {
-  const W = 2048;
-  const H = 128;
-  const [c, ctx] = canvas(W, H);
-  ctx.fillStyle = "#24272d";
-  ctx.fillRect(0, 0, W, H);
-  for (let k = 0; k < 8; k++) {
-    const x0 = (k * W) / 8;
-    if (k % 2 === 0) hazard(ctx, x0 + 20, 34, 180, 60, "#ffc400", "#141414", 14);
-    ctx.fillStyle = "rgba(233,228,214,0.8)";
-    ctx.font = `700 26px ${fonts.mono}`;
-    ctx.fillText(["S-03", "กรุงเทพฯ", "UTC+7", "MOD BAY", "PWR", "ZE", "2019→", "07"][k], x0 + (k % 2 === 0 ? 216 : 30), 74);
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(x0, 0, 3, H);
-  }
-  grain(ctx, W, H, 16, 11);
-  const t = tex(c, aniso);
-  t.wrapS = THREE.RepeatWrapping;
-  return t;
-}

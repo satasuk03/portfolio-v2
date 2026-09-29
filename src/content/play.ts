@@ -52,8 +52,8 @@ export const playCopy = {
   bootHint: "Click, tap or press Enter. Sound on.",
   loading: "Loading unit",
   hints: {
-    desktop: "Drag to spin · Click a module · Hold the core",
-    touch: "Swipe to spin · Tap a module · Hold the core",
+    desktop: "Drag to look · Click a card · Hold the core",
+    touch: "Swipe to look · Tap a card · Hold the core",
   },
   /* The link back to /. It was "Print edition" while / was the printed
      manual; / is now the reading edition of the same hangar. */

@@ -262,7 +262,7 @@ export class ReaderScreen {
     ctx.fill();
     ctx.restore();
     ctx.font = this.font(700, 24 * u);
-    ctx.fillText(`${String(this.modulesCount).padStart(2, "0")} MODULES ON RING · BAY OPEN`, 40 * u, 360 * u);
+    ctx.fillText(`${String(this.modulesCount).padStart(2, "0")} CARDS ON DECK · BAY OPEN`, 40 * u, 360 * u);
     this.waveform(40 * u, H - 120 * u, W - 80 * u, 70 * u, u);
     const tick = "  ·  SATASUK VIPARKSINLAPIN  ·  FIELD UNIT S-03  ·  BANGKOK UTC+7  ·  PICK A CARTRIDGE";
     ctx.font = this.font(700, 22 * u);

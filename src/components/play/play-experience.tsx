@@ -166,11 +166,11 @@ export function PlayExperience() {
       const pw = Math.min(600, w * 0.44) + 22;
       // The free band runs from the left HUD rail (~160px) to the panel.
       const rail = 160;
-      return { x: (pw - rail) / 2 + 8, y: 0, zoom: 1.04, visW: (w - pw - rail - 30) / w, visH: 0.8 };
+      return { x: (pw - rail) / 2 + 8, y: 0, visW: (w - pw - rail - 30) / w, visH: 0.8 };
     }
     // The bottom sheet: the reader lives in the band above it.
     const sheet = Math.min(h * 0.58, 620) + 84;
-    return { x: 0, y: sheet / 2, zoom: 1.28, visW: 0.92, visH: (h - sheet - 24) / h };
+    return { x: 0, y: sheet / 2, visW: 0.92, visH: (h - sheet - 24) / h };
   };
 
   const closePanel = () =>
@@ -199,14 +199,14 @@ export function PlayExperience() {
       s.setLink(null);
       await closePanel();
       setOpenIdx(null);
-      s.setFocus(0, 0, 1);
+      s.setFocus(0, 0);
       await s.eject();
       seatedRef.current = null;
       setSeated(null);
     }
     if (i !== null && i !== current) {
       const f = focusFor();
-      s.setFocus(f.x, f.y, f.zoom, f.visW, f.visH);
+      s.setFocus(f.x, f.y, f.visW, f.visH);
       await s.load(i);
       seatedRef.current = i;
       setSeated(i);
@@ -325,6 +325,25 @@ export function PlayExperience() {
       html.classList.remove("play-lock");
     };
   }, [select, onCharge, onDischarge, onFrame]);
+
+  // A panel is open and the viewport changes shape (rotation, a resized
+  // window): refit the close-up to the space the panel now leaves.
+  useEffect(() => {
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        if (seatedRef.current === null || busyRef.current) return;
+        const f = focusFor();
+        stage.current?.setFocus(f.x, f.y, f.visW, f.visH);
+      });
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
 
   // Clock: Bangkok time with a 30fps frame counter, like a timecode.
   useEffect(() => {

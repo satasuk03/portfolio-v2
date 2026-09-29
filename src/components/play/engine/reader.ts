@@ -9,7 +9,7 @@
  * scans in surfaces.ts for close-up detail. Coordinates in this file are
  * CHASSIS-LOCAL: origin at the chassis centre, +z out of the front face.
  * The chassis sits in `body`, whose origin is the chassis bottom — that is
- * the squash pivot, so a slam compresses the reader into its cradle.
+ * the squash pivot, so a slam compresses the reader onto its feet.
  *
  * The face is laid out in `L`, and in development every control, dial,
  * legend and screw registers a footprint that is checked against every other
@@ -25,15 +25,17 @@
 
 import * as THREE from "three";
 import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { chamferBox, glow, holoRingMaterial, type Mats } from "./models";
+import { chamferBox, glow, type Mats } from "./models";
 import { ReaderScreen } from "./screen";
 import type { Surfaces } from "./surfaces";
 import type { Fonts } from "./textures";
-import { plinthTexture, rng } from "./textures";
+import { rng } from "./textures";
 import { wearMaterial } from "./wear-maps";
 import { flecks, seam, sticker, weathered, wornText, type WearSpot } from "./weathering";
 
-export const BODY = { w: 1.9, h: 2.9, d: 0.56, base: 0.5 };
+export const BODY = { w: 1.9, h: 2.9, d: 0.56, base: 0.1 };
+/** The feet the chassis stands on: they set BODY.base. */
+const SKID = { w: 0.3, h: BODY.base, d: 0.92, pad: 0.02 };
 const F = BODY.d / 2; // front face z
 /**
  * The slot housing: a rounded-profile block that SITS ON the chassis top,
@@ -45,7 +47,8 @@ const HOUSING = { len: 1.3, d: 0.46, h: 0.3, r: 0.07, sink: 0.05 };
 export const SLOT_TOP = BODY.base + BODY.h + HOUSING.h - HOUSING.sink;
 /** Inserted cartridge centre: ~0.64 of it stands proud of the slot. */
 export const INSERT_Y = SLOT_TOP + 0.04;
-export const HOVER_Y = SLOT_TOP + 1.45;
+/** Where a card lines up over the slot before it goes in: pins just clear. */
+export const HOVER_Y = SLOT_TOP + 0.95;
 /** World-space centre of the LCD — the close-up camera frames on it. */
 export const SCREEN_Y = BODY.base + BODY.h / 2 + 0.72;
 
@@ -332,44 +335,26 @@ export function buildReader(fonts: Fonts, aniso: number, mats: Mats, hi: boolean
   /** Tiled-metal side walls, world-scaled: one repeat per 0.6 units. */
   const tiledSide = (depth: number): SideUV => (s, v) => [s / 0.6, (v * depth) / 0.6];
 
-  // ── dock: the plinth from the print edition's unit, and a cradle ────────
-  const OCT = Math.PI / 8;
-  const plinthMat = new THREE.MeshStandardMaterial({ color: "#2c3037", metalness: 0.7, roughness: 0.42, map: plinthTexture(fonts, aniso) });
-  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.52, 1.68, 0.34, 8), [plinthMat, mats.darkMetal, mats.darkMetal]);
-  plinth.position.y = 0.17;
-  plinth.rotation.y = OCT;
-  add(root, plinth, 0);
-  const lip = new THREE.Mesh(new THREE.CylinderGeometry(1.71, 1.71, 0.035, 8, 1, true), glow("#1fc3ec", 2.2));
-  lip.position.y = 0.03;
-  lip.rotation.y = OCT;
-  accents.push(lip.material as THREE.MeshBasicMaterial);
-  add(root, lip, 0);
-  const step = new THREE.Mesh(new THREE.CylinderGeometry(1.28, 1.42, 0.14, 8), gunmetal);
-  step.position.y = 0.41;
-  step.rotation.y = OCT;
-  add(root, step, 1);
-
-  // Cradle: arms stand clear of the chassis sides; rubber pads bridge the gap.
-  const cradle = new THREE.Group();
-  add(root, cradle, 1);
-  const ARM = { w: 0.16, x: W / 2 + 0.03 + 0.08 };
+  // ── stance: two skids, so the unit stands on the table by itself ──────────
+  // No plinth, no cradle: the chassis rests on a pair of machined feet that
+  // run front to back under it, rubber-padded where they meet the table.
+  const stance = new THREE.Group();
+  add(root, stance, 1);
   for (const sx of [-1, 1]) {
-    const arm = new THREE.Mesh(chamferBox(ARM.w, 0.72, 0.74, 0.03), gunmetal);
-    arm.position.set(sx * ARM.x, BODY.base + 0.3, 0);
-    cradle.add(arm);
-    const pad = new THREE.Mesh(chamferBox(0.03, 0.5, 0.5, 0.008), mats.rubber);
-    pad.position.set(sx * (W / 2 + 0.015), BODY.base + 0.32, 0);
-    cradle.add(pad);
-    for (const z of [-0.22, 0.22]) {
-      const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 6), chrome);
-      bolt.rotation.z = Math.PI / 2;
-      bolt.position.set(sx * (ARM.x + ARM.w / 2 + 0.012), BODY.base + 0.42, z);
-      cradle.add(bolt);
+    const x = sx * (W / 2 - SKID.w / 2 - 0.08);
+    const skid = new THREE.Mesh(chamferBox(SKID.w, SKID.h - SKID.pad, SKID.d, 0.028), gunmetal);
+    skid.position.set(x, SKID.pad + (SKID.h - SKID.pad) / 2, 0.04);
+    stance.add(skid);
+    for (const z of [-SKID.d / 2 + 0.1, SKID.d / 2 - 0.02]) {
+      const pad = new THREE.Mesh(chamferBox(SKID.w - 0.03, SKID.pad, 0.14, 0.008), mats.rubber);
+      pad.position.set(x, SKID.pad / 2, z);
+      stance.add(pad);
     }
+    // The chassis is bolted down through the skid's front toe.
+    const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.014, 6), chrome);
+    bolt.position.set(x, SKID.h + 0.007, SKID.d / 2 - 0.06 + 0.04);
+    stance.add(bolt);
   }
-  const foot = new THREE.Mesh(chamferBox(W * 0.8, 0.06, 0.5, 0.02), mats.darkMetal);
-  foot.position.set(0, BODY.base - 0.03, 0);
-  cradle.add(foot);
 
   // ── body: squash pivot at the chassis bottom ──────────────────────────────
   const body = new THREE.Group();
@@ -487,7 +472,7 @@ export function buildReader(fonts: Fonts, aniso: number, mats: Mats, hi: boolean
   const paint = wearMaterial(wear, aniso, { hi, bumpScale: 3 });
 
   // The side band: same enamel, rusted along both rims where hands and the
-  // cradle wear it, with louvre slots on each flank.
+  // table wear it, with louvre slots on each flank.
   const chassisShape = roundedRectShape(FACE.w, FACE.h, FACE.r);
   const chassisPer = perimeterParam(chassisShape);
   const BW = hi ? 2048 : 1024;
@@ -510,10 +495,29 @@ export function buildReader(fonts: Fonts, aniso: number, mats: Mats, hi: boolean
   sideMat.roughnessMap!.wrapS = THREE.RepeatWrapping;
   sideMat.bumpMap!.wrapS = THREE.RepeatWrapping;
 
-  const chassisMesh = new THREE.Mesh(slab(chassisShape, W, H, D, 0.05), [paint, sideMat, sideMat]);
+  // The back panel: the same enamel, its own wear, and a louvred grille —
+  // seen when the desk is looked round, and in every cast shadow's outline.
+  // Symmetric, because the back cap's UVs read mirrored from behind.
+  const BKW = hi ? 384 : 256;
+  const BKH = Math.round(BKW * (H / W));
+  const bu = BKW / W;
+  const backWear = weathered({ w: BKW, h: BKH, seed: 31, paint: [222, 214, 196], wear: 0.72, edge: 0.06, streaks: 0.9, unit: bu, surf });
+  for (let i = 0; i < 9; i++) {
+    const y = (0.5 - (0.55 - i * 0.075) / H) * BKH;
+    for (const [c, ctx] of [
+      ["rgba(16,12,9,0.9)", backWear.col],
+      ["#101010", backWear.bmp],
+    ] as const) {
+      ctx.fillStyle = c;
+      ctx.fillRect(BKW / 2 - 0.5 * bu, y, 1.0 * bu, 0.03 * bu);
+    }
+  }
+  const backMat = wearMaterial(backWear, aniso, { hi: false, bumpScale: 3 });
+
+  const chassisMesh = new THREE.Mesh(slab(chassisShape, W, H, D, 0.05), [paint, sideMat, backMat]);
   chassis.add(chassisMesh);
 
-  // Side ribs and strap lugs, clear of the louvres and the cradle arms.
+  // Side ribs and strap lugs, clear of the louvres.
   for (const sx of [-1, 1]) {
     for (const y of [0.95, 0.35]) {
       const rib = new THREE.Mesh(chamferBox(0.05, 0.08, 0.42, 0.012), gunmetal);
@@ -974,39 +978,13 @@ export function buildReader(fonts: Fonts, aniso: number, mats: Mats, hi: boolean
   const hole = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.02, 0.27), mats.void);
   hole.position.y = HOUSING.h / 2 + 0.03;
   hump.add(hole);
+  // The slot's lip lights are driven by the stage, not the accent sweep: they
+  // answer a hovered card in its colour and flare as one goes in.
   const lipMat = glow("#1fc3ec", 1.3);
-  accents.push(lipMat);
   for (const z of [-0.138, 0.138]) {
     const l = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.014, 0.01), lipMat);
     l.position.set(0, HOUSING.h / 2 + 0.037, z);
     hump.add(l);
-  }
-
-  // The insertion guide — a hologram halo over the slot.
-  const haloGroup = new THREE.Group();
-  haloGroup.position.y = HOVER_Y - 0.2;
-  root.add(haloGroup);
-  const haloMat = holoRingMaterial("#1fc3ec", 1.4, 24, 0.12);
-  const halo = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.76, 64), haloMat);
-  halo.rotation.x = -Math.PI / 2;
-  const halo2Mat = holoRingMaterial("#1fc3ec", 0.8, 8, -0.2);
-  const halo2 = new THREE.Mesh(new THREE.RingGeometry(0.84, 0.9, 64), halo2Mat);
-  halo2.rotation.x = -Math.PI / 2;
-  haloGroup.add(halo, halo2);
-  assembly.push({ obj: haloGroup, order: 8, kind: "pop" });
-
-  // Cables off the dock.
-  for (const [a, len, r] of [
-    [2.4, 6.5, 0.07],
-    [3.35, 8, 0.05],
-    [4.2, 5.5, 0.06],
-    [-2.6, 7, 0.08],
-  ] as const) {
-    const s = new THREE.Vector3(Math.sin(a) * 1.55, 0.14, Math.cos(a) * 1.55);
-    const mid = new THREE.Vector3(Math.sin(a + 0.12) * 2.4, 0.03, Math.cos(a + 0.12) * 2.4);
-    const e = new THREE.Vector3(Math.sin(a + 0.3) * len, r, Math.cos(a + 0.3) * len);
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([s, mid, e]), 40, r, 8), mats.rubber);
-    add(root, tube, 0, "pop");
   }
 
   // Hold-to-charge volume: the whole chassis.
@@ -1025,8 +1003,7 @@ export function buildReader(fonts: Fonts, aniso: number, mats: Mats, hi: boolean
     screen,
     assembly,
     accents,
-    haloGroup,
-    haloMats: [haloMat, halo2Mat],
+    slotLights: lipMat,
     hit,
     eject: ejectBtn,
     charge: chgBtn,

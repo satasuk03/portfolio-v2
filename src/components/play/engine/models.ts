@@ -4,13 +4,12 @@
  * edge, which is most of what makes a box read as machined) and dressed with
  * the canvas decals from textures.ts.
  *
- * Units: metres-ish. The floor is y = 0. The reader itself lives in reader.ts.
+ * Units: metres-ish. The table top is y = 0 (table.ts). The reader lives in reader.ts.
  */
 
 import * as THREE from "three";
 import type { PlayModule } from "@/content/play";
 import { cartridgeBack, cartridgeLabel, type Fonts } from "./textures";
-import { ringFrag, uvVert } from "./shaders";
 
 export const CART = { w: 0.95, h: 1.2, d: 0.24 };
 
@@ -67,7 +66,7 @@ function cartridgeGeometry() {
 
 export function makeMaterials() {
   return {
-    plastic: new THREE.MeshPhysicalMaterial({ color: "#d9d2c0", roughness: 0.52, clearcoat: 0.35, clearcoatRoughness: 0.45 }),
+    plastic: new THREE.MeshPhysicalMaterial({ color: "#d4cdbb", roughness: 0.6, clearcoat: 0.18, clearcoatRoughness: 0.55 }),
     plasticDark: new THREE.MeshPhysicalMaterial({ color: "#8f8a7e", roughness: 0.6, clearcoat: 0.2 }),
     gunmetal: new THREE.MeshStandardMaterial({ color: "#3a3f47", metalness: 0.78, roughness: 0.36 }),
     darkMetal: new THREE.MeshStandardMaterial({ color: "#191b1f", metalness: 0.6, roughness: 0.5 }),
@@ -100,26 +99,6 @@ export function setGlow(m: THREE.MeshBasicMaterial, hex: string, k: number) {
   m.userData.base = hex;
   m.userData.k = k;
 }
-
-export function holoRingMaterial(hex: string, opacity: number, dashes = 64, speed = 0.02) {
-  return new THREE.ShaderMaterial({
-    uniforms: {
-      uColor: { value: new THREE.Color(hex) },
-      uOpacity: { value: opacity },
-      uTime: { value: 0 },
-      uDashes: { value: dashes },
-      uSpeed: { value: speed },
-    },
-    vertexShader: uvVert,
-    fragmentShader: ringFrag,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-}
-
-
 
 // ── cartridges ──────────────────────────────────────────────────────────────
 
@@ -170,36 +149,3 @@ export function buildCartridge(m: PlayModule, fonts: Fonts, aniso: number, mats:
   return { module: m, root, spin, squash, ledMat, hit, labelMat };
 }
 export type Cartridge = ReturnType<typeof buildCartridge>;
-
-// ── floor dressing: survey rings and ticks around the unit ─────────────────
-
-export function buildFloorRings() {
-  const g = new THREE.Group();
-  const specs: [number, number, string, number, number, number][] = [
-    [2.7, 2.72, "#1fc3ec", 0.9, 120, 0.004],
-    [3.55, 3.62, "#3d7bff", 0.7, 36, -0.006],
-    [5.9, 5.93, "#3d7bff", 0.45, 180, 0.002],
-  ];
-  const mats: THREE.ShaderMaterial[] = [];
-  for (const [r0, r1, c, o, dashes, speed] of specs) {
-    const mat = holoRingMaterial(c, o, dashes, speed);
-    const mesh = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 160), mat);
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = 0.012;
-    g.add(mesh);
-    mats.push(mat);
-  }
-  // Compass ticks.
-  const pts: number[] = [];
-  for (let i = 0; i < 72; i++) {
-    const a = (i / 72) * Math.PI * 2;
-    const r0 = 4.4;
-    const r1 = i % 9 === 0 ? 4.85 : 4.58;
-    pts.push(Math.sin(a) * r0, 0.015, Math.cos(a) * r0, Math.sin(a) * r1, 0.015, Math.cos(a) * r1);
-  }
-  const tg = new THREE.BufferGeometry();
-  tg.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
-  const ticks = new THREE.LineSegments(tg, new THREE.LineBasicMaterial({ color: new THREE.Color("#3d7bff").multiplyScalar(0.8), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
-  g.add(ticks);
-  return { group: g, mats };
-}

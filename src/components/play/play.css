@@ -491,6 +491,15 @@ html.play-lock body {
   display: flex;
   gap: 6px;
 }
+/* globals.css has its own `.bay` — the home page's section wrapper, with a
+   deep top padding and a hatch rule. Neither belongs here: the padding is an
+   invisible box over the desk that eats the front cards' hover. */
+.play-root .bay {
+  padding: 0;
+}
+.play-root .bay::before {
+  content: none;
+}
 
 .bay-btn {
   --c: var(--cyan);
