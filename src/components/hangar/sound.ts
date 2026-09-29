@@ -32,7 +32,7 @@ export const sound = {
     const next = !on;
     if (next && !sfx) {
       const { Sfx } = await import("@/components/play/engine/audio");
-      sfx = new Sfx();
+      sfx = new Sfx("/audio/hangar-home.mp3");
     }
     if (next && sfx) {
       sfx.init();

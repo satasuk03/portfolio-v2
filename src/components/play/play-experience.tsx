@@ -280,7 +280,7 @@ export function PlayExperience() {
       try {
         const [{ Stage }, { Sfx }] = await Promise.all([import("./engine/stage"), import("./engine/audio")]);
         if (dead) return;
-        const audio = new Sfx();
+        const audio = new Sfx("/audio/hangar-play.mp3");
         sfx.current = audio;
         const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
         const st = new Stage(stageRef.current!, fxRef.current!, playModules, audio, {

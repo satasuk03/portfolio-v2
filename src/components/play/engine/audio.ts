@@ -32,6 +32,9 @@ export class Sfx {
   private lastHover = 0;
   private lastTick = 0;
 
+  /** `musicSrc` is the route's music bed: each edition has its own. */
+  constructor(private readonly musicSrc: string) {}
+
   get ready() {
     return this.ctx !== null;
   }
@@ -331,7 +334,7 @@ export class Sfx {
      starts silent; musicOn() fades it up. */
   private startMusic() {
     const ctx = this.ctx!;
-    const el = new Audio("/audio/gravitys-longest-breath.mp3");
+    const el = new Audio(this.musicSrc);
     el.loop = true;
     el.preload = "auto";
     this.musicBus = ctx.createGain();
