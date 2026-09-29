@@ -5,10 +5,12 @@
  * The synth is /play's `Sfx` (engine/audio.ts), dynamic-imported the first
  * time the visitor turns sound on, so a visitor who never does downloads none
  * of it. `Sfx.init()` creates the AudioContext, and it is only ever called from
- * inside the toggle's click handler — a user gesture, as browsers require.
+ * inside a click handler — the toggle's, or the first-visit hint's "Turn on"
+ * (sound-hint.tsx) — a user gesture, as browsers require.
  *
  * Every cue is a no-op while sound is off, so callers never check. The state
- * is not persisted: the page opens silent on every visit.
+ * is not persisted: the page opens silent on every visit. (The hint persists
+ * only that it has been shown, never whether sound was on.)
  */
 
 import type { Sfx } from "@/components/play/engine/audio";
