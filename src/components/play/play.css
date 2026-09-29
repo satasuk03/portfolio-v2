@@ -109,7 +109,7 @@ html.play-lock body {
   font-variant-numeric: tabular-nums;
 }
 
-.hud-dim {
+:where(.play-root) .hud-dim{
   color: var(--hud-dim);
 }
 
@@ -121,10 +121,10 @@ html.play-lock body {
   border-style: solid;
   border-width: 0;
 }
-.hud-corner.tl { top: 12px; left: 12px; border-top-width: 2px; border-left-width: 2px; transform-origin: 0 0; }
-.hud-corner.tr { top: 12px; right: 12px; border-top-width: 2px; border-right-width: 2px; transform-origin: 100% 0; }
-.hud-corner.bl { bottom: 12px; left: 12px; border-bottom-width: 2px; border-left-width: 2px; transform-origin: 0 100%; }
-.hud-corner.br { bottom: 12px; right: 12px; border-bottom-width: 2px; border-right-width: 2px; transform-origin: 100% 100%; }
+:where(.play-root) .hud-corner.tl{ top: 12px; left: 12px; border-top-width: 2px; border-left-width: 2px; transform-origin: 0 0; }
+:where(.play-root) .hud-corner.tr{ top: 12px; right: 12px; border-top-width: 2px; border-right-width: 2px; transform-origin: 100% 0; }
+:where(.play-root) .hud-corner.bl{ bottom: 12px; left: 12px; border-bottom-width: 2px; border-left-width: 2px; transform-origin: 0 100%; }
+:where(.play-root) .hud-corner.br{ bottom: 12px; right: 12px; border-bottom-width: 2px; border-right-width: 2px; transform-origin: 100% 100%; }
 
 .hud-brand {
   position: absolute;
@@ -161,7 +161,7 @@ html.play-lock body {
   color: var(--hud);
 }
 
-.hud-btn {
+:where(.play-root) .hud-btn{
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -175,33 +175,33 @@ html.play-lock body {
   backdrop-filter: blur(6px);
   transition: transform 0.35s var(--spring), background-color 0.15s, color 0.15s;
 }
-.hud-btn:hover {
+:where(.play-root) .hud-btn:hover{
   transform: translateY(-2px) scale(1.04);
   background: var(--hud) !important;
   color: var(--ink);
 }
-.hud-btn .pp-arrow {
+:where(.play-root) .hud-btn .pp-arrow{
   width: 12px;
   height: 12px;
 }
 
-.eq {
+:where(.play-root) .eq{
   display: inline-flex;
   align-items: flex-end;
   gap: 2px;
   height: 12px;
 }
-.eq i {
+:where(.play-root) .eq i{
   width: 2px;
   height: 100%;
   background: currentColor;
   transform-origin: bottom;
   animation: eq 0.9s ease-in-out infinite;
 }
-.eq i:nth-child(2) { animation-delay: -0.3s; }
-.eq i:nth-child(3) { animation-delay: -0.55s; }
-.eq i:nth-child(4) { animation-delay: -0.15s; }
-.eq[data-muted="true"] i {
+:where(.play-root) .eq i:nth-child(2){ animation-delay: -0.3s; }
+:where(.play-root) .eq i:nth-child(3){ animation-delay: -0.55s; }
+:where(.play-root) .eq i:nth-child(4){ animation-delay: -0.15s; }
+:where(.play-root) .eq[data-muted="true"] i{
   animation: none;
   transform: scaleY(0.18);
 }
@@ -230,7 +230,7 @@ html.play-lock body {
   min-height: 0;
 }
 
-.rail-bracket {
+:where(.play-root) .rail-bracket{
   width: 44px;
   height: 44px;
   border: 2px dashed var(--hud);
@@ -238,7 +238,7 @@ html.play-lock body {
   place-items: center;
   border-radius: 4px;
 }
-.rail-bracket i {
+:where(.play-root) .rail-bracket i{
   width: 14px;
   height: 14px;
   border: 2px solid var(--hud);
@@ -326,15 +326,15 @@ html.play-lock body {
   gap: 8px;
   transition: opacity 0.4s;
 }
-.tri {
+:where(.play-root) .tri{
   width: 0;
   height: 0;
   border-left: 9px solid transparent;
   border-right: 9px solid transparent;
 }
-.tri.up { border-bottom: 13px solid var(--hud); }
-.tri.down { border-top: 13px solid var(--hud); }
-.rail-n {
+:where(.play-root) .tri.up{ border-bottom: 13px solid var(--hud); }
+:where(.play-root) .tri.down{ border-top: 13px solid var(--hud); }
+:where(.play-root) .rail-n{
   font-size: 13px;
   font-weight: 700;
   margin: 2px 0;
@@ -416,17 +416,17 @@ html.play-lock body {
   pointer-events: none;
   border: 1px dashed color-mix(in srgb, var(--lock) 55%, transparent);
 }
-.hud-lock .lk {
+:where(.play-root) .hud-lock .lk{
   position: absolute;
   width: 14px;
   height: 14px;
   border: 0 solid var(--lock);
 }
-.hud-lock .lk.tl { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; }
-.hud-lock .lk.tr { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; }
-.hud-lock .lk.bl { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; }
-.hud-lock .lk.br { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; }
-.lk-label {
+:where(.play-root) .hud-lock .lk.tl{ top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; }
+:where(.play-root) .hud-lock .lk.tr{ top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; }
+:where(.play-root) .hud-lock .lk.bl{ bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; }
+:where(.play-root) .hud-lock .lk.br{ bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; }
+:where(.play-root) .lk-label{
   position: absolute;
   left: -2px;
   top: -8px;
@@ -480,9 +480,9 @@ html.play-lock body {
   to { transform: rotate(360deg); }
 }
 
-/* ── module bay ────────────────────────────────────────────────────────── */
+:where(.play-root) /* ── module bay ────────────────────────────────────────────────────────── */
 
-.bay {
+.bay{
   position: absolute;
   z-index: 5;
   left: 50%;
@@ -491,7 +491,7 @@ html.play-lock body {
   display: flex;
   gap: 6px;
 }
-/* globals.css has its own `.bay` — the home page's section wrapper, with a
+:where(.play-root) /* globals.css has its own `.bay` — the home page's section wrapper, with a
    deep top padding and a hatch rule. Neither belongs here: the padding is an
    invisible box over the desk that eats the front cards' hover. */
 .play-root .bay {
@@ -542,13 +542,13 @@ html.play-lock body {
   transform: translateY(1px) scale(0.96);
   transition-duration: 0.08s;
 }
-.bay .bay-btn[data-active="true"],
-.bay .bay-btn[data-active="true"]:hover {
+:where(.play-root) .bay .bay-btn[data-active="true"],
+:where(.play-root) .bay .bay-btn[data-active="true"]:hover{
   background: var(--c) !important;
   color: var(--ink);
   transform: translateY(-8px);
 }
-.bay .bay-btn[data-active="true"] .bay-n {
+:where(.play-root) .bay .bay-btn[data-active="true"] .bay-n{
   color: var(--ink);
 }
 
@@ -666,7 +666,7 @@ html.play-lock body {
   opacity: 0.35;
 }
 
-.sr-only {
+:where(.play-root) .sr-only{
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1334,10 +1334,10 @@ html.play-lock body {
     width: 18px;
     height: 18px;
   }
-  .hud-corner.tl, .hud-corner.tr { top: 8px; }
-  .hud-corner.bl, .hud-corner.br { bottom: 8px; }
-  .hud-corner.tl, .hud-corner.bl { left: 8px; }
-  .hud-corner.tr, .hud-corner.br { right: 8px; }
+  :where(.play-root) .hud-corner.tl, :where(.play-root) .hud-corner.tr{ top: 8px; }
+  :where(.play-root) .hud-corner.bl, :where(.play-root) .hud-corner.br{ bottom: 8px; }
+  :where(.play-root) .hud-corner.tl, :where(.play-root) .hud-corner.bl{ left: 8px; }
+  :where(.play-root) .hud-corner.tr, :where(.play-root) .hud-corner.br{ right: 8px; }
 
   .hud-brand {
     top: 18px;
@@ -1357,7 +1357,7 @@ html.play-lock body {
   .hud-clock {
     display: none;
   }
-  .hud-btn {
+  :where(.play-root) .hud-btn{
     height: 30px;
     padding: 0 10px;
   }
@@ -1370,7 +1370,7 @@ html.play-lock body {
     bottom: 140px;
   }
   .rail-side,
-  .rail-bracket {
+  :where(.play-root) .rail-bracket{
     display: none;
   }
   .rail-hatch {
@@ -1403,7 +1403,7 @@ html.play-lock body {
     display: none;
   }
 
-  .bay {
+  :where(.play-root) .bay{
     left: 8px;
     right: 8px;
     bottom: 10px;
@@ -1511,7 +1511,7 @@ html.play-lock body {
   .play-boot[data-ready="true"] .boot-btn {
     animation: none;
   }
-  .eq i {
+  :where(.play-root) .eq i{
     animation: none;
     transform: scaleY(0.6);
   }
