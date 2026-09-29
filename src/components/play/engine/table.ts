@@ -1,12 +1,14 @@
 /*
- * THE TABLE — the surface the reader stands on and the cards lie on.
+ * THE TABLE — the surface the reader stands on and the case sits on.
  *
  * It is bigger than anything the camera can see, so it has no edge: a
  * graphite deck of machined plates that runs off into the fog. The stage in
- * the middle is kept clean — the reader, and one pad per card. Everything
+ * the middle is kept clean — the reader, the case, the props. Everything
  * else is in the periphery: power conduits cut into the deck in parallel
  * bundles, and a few greebles where they meet — hubs, couplers, terminals,
- * vents.
+ * vents. The cartridge case and the props are separate objects (case.ts,
+ * props.ts) placed by the composition in layout.ts; this file only routes the
+ * network round them.
  *
  * Energy is one shader. Every conduit core, and every little window on a
  * greeble that sits over one, carries `aD` — its distance along the network
@@ -16,8 +18,8 @@
  * lane's aD and seed, so it flashes exactly as a packet passes under it.
  *
  * Coordinates are world: the table top is y = 0, the reader stands at the
- * origin facing +z, and the camera looks from +z. The stage layout (where the
- * pads go) depends on the viewport's shape, so the network is built per
+ * origin facing +z, and the wide camera looks from the +z side. The stage layout
+ * (where the case and props go) depends on the viewport's shape, so the network is built per
  * layout and rebuilt when the shape class changes; the deck surface is not.
  */
 
@@ -26,46 +28,26 @@ import { mergeGeometries, toCreasedNormals } from "three/examples/jsm/utils/Buff
 import type { PlayModule } from "@/content/play";
 import type { Surfaces } from "./surfaces";
 import { rng, type Fonts } from "./textures";
+import { caseDims, stageLayout, type LayoutMode, type StageLayout } from "./layout";
 
 // ── stage layout ────────────────────────────────────────────────────────────
 
-export type LayoutMode = "wide" | "tall";
-export type PadSpot = { x: number; z: number; yaw: number };
+export type { LayoutMode } from "./layout";
 
-/** A card pad's footprint on the deck: a cartridge (0.95 × 1.2) plus a margin. */
-export const PAD = { w: 1.14, d: 1.4, h: 0.014 };
 /** The reader's footprint, skids included, for the keep-out zone. */
 const READER_FOOT = { hw: 1.1, z0: -0.62, z1: 0.62 };
 
-/**
- * Wide screens deal the cards in a shallow arc in front of the reader; tall
- * screens stack them in two rows. Cards stay nearly square to the lens — a
- * label is for reading — with just enough yaw to fan the arc toward the
- * reader. Spacing leaves room for each pad's printed label.
- */
-export function deckLayout(mode: LayoutMode, n: number): PadSpot[] {
-  if (mode === "wide") {
-    return Array.from({ length: n }, (_, i) => {
-      const x = (i - (n - 1) / 2) * 1.42;
-      return { x, z: 3.3 - x * x * 0.06, yaw: x * 0.05 };
-    });
-  }
-  // Tall screens are short of width, not height: rows of two and three,
-  // staggered like a honeycomb (2-3-2 for seven).
-  const rows: number[] = [];
-  for (let left = n, k = 0; left > 0; k++) {
-    const c = Math.min(left, k % 2 ? 3 : 2);
-    rows.push(c);
-    left -= c;
-  }
-  const out: PadSpot[] = [];
-  rows.forEach((count, r) => {
-    for (let k = 0; k < count; k++) {
-      const x = (k - (count - 1) / 2) * 1.26;
-      out.push({ x, z: 1.95 + r * 1.86, yaw: 0 });
-    }
-  });
-  return out;
+/** How far the case reaches from the reader's axis, and how far toward the lens. */
+function stageExtent(layout: StageLayout, n: number) {
+  const { w, l } = caseDims(n);
+  const { x, z, yaw } = layout.caseSpot;
+  const hx = Math.abs(Math.cos(yaw)) * (w / 2) + Math.abs(Math.sin(yaw)) * (l / 2);
+  const hz = Math.abs(Math.sin(yaw)) * (w / 2) + Math.abs(Math.cos(yaw)) * (l / 2);
+  const props = layout.props;
+  return {
+    reach: Math.max(READER_FOOT.hw + 0.6, Math.abs(x) + hx, ...props.map((p) => Math.abs(p.x) + 0.5)),
+    front: Math.max(z + hz, ...props.map((p) => p.z + 0.5)),
+  };
 }
 
 // ── small geometry kit ──────────────────────────────────────────────────────
@@ -229,10 +211,9 @@ const LANE_W = LANE.core + LANE.rail * 2 + 0.012;
  * The hand-laid trunk lines for a layout. `side` is how far out the stage
  * reaches in x; everything is routed round it.
  */
-function trunks(mode: LayoutMode, pads: PadSpot[]): Bundle[] {
-  const reach = Math.max(...pads.map((p) => Math.abs(p.x))) + PAD.w / 2;
+function trunks(mode: LayoutMode, ext: { reach: number; front: number }): Bundle[] {
+  const { reach, front } = ext;
   const side = mode === "wide" ? reach + 1.0 : reach + 0.75;
-  const front = Math.max(...pads.map((p) => p.z)) + PAD.d / 2;
   const B: Bundle[] = [];
   // Rear feed: out of the reader's dock plate, straight back to the hub.
   B.push({ pts: [v2(0, READER_FOOT.z0 - 0.05), v2(0, -2.35)], lanes: 2, gap: 0.14, d0: 0 });
@@ -562,52 +543,9 @@ function deckMaps(hi: boolean, fonts: Fonts, surf: Surfaces | null, aniso: numbe
   return { map: t(colC, true), orm: t(ormC, false), normal: t(nC, false) };
 }
 
-// ── pads ────────────────────────────────────────────────────────────────────
-
-function padLabel(m: PlayModule, fonts: Fonts, aniso: number) {
-  const W = 512;
-  const H = 96;
-  const c = document.createElement("canvas");
-  c.width = W;
-  c.height = H;
-  const ctx = c.getContext("2d")!;
-  ctx.fillStyle = "rgba(233,228,214,0.78)";
-  ctx.font = `800 54px ${fonts.display}`;
-  ctx.textBaseline = "middle";
-  ctx.fillText(m.n, 6, H / 2 + 3);
-  const nw = ctx.measureText(m.n).width;
-  ctx.fillStyle = m.color;
-  ctx.fillRect(nw + 22, 22, 6, H - 44);
-  ctx.fillStyle = "rgba(233,228,214,0.62)";
-  ctx.font = `700 26px ${fonts.mono}`;
-  ctx.fillText(m.label.toUpperCase(), nw + 44, H / 2 - 13);
-  ctx.fillStyle = "rgba(233,228,214,0.34)";
-  ctx.font = `500 19px ${fonts.mono}`;
-  ctx.fillText(`BAY ${m.n} · ${m.code}`, nw + 44, H / 2 + 19);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = aniso;
-  return t;
-}
-
-export type Pad = {
-  spot: PadSpot;
-  /** The corner brackets and the status bar, lit in the module's colour. */
-  light: THREE.MeshBasicMaterial;
-  group: THREE.Group;
-};
-
 // ── the build ───────────────────────────────────────────────────────────────
 
 const BASE = new THREE.Color("#2a64ff");
-
-/** Same contract as models.glow: HDR colour in, userData records it. */
-function glowMat(hex: string, k: number) {
-  const m = new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), toneMapped: false });
-  m.userData.base = hex;
-  m.userData.k = k;
-  return m;
-}
 
 export function buildTable(opts: { fonts: Fonts; aniso: number; hi: boolean; surf: Surfaces | null; modules: PlayModule[]; fogDensity: number }) {
   const { fonts, aniso, hi, surf, modules } = opts;
@@ -666,7 +604,8 @@ export function buildTable(opts: { fonts: Fonts; aniso: number; hi: boolean; sur
 
   function buildLayout(mode: LayoutMode) {
     const group = new THREE.Group();
-    const spots = deckLayout(mode, modules.length);
+    const stage = stageLayout(mode);
+    const ext = stageExtent(stage, modules.length);
     const geo = { rail: [] as THREE.BufferGeometry[], hull: [] as THREE.BufferGeometry[], dark: [] as THREE.BufferGeometry[], bolt: [] as THREE.BufferGeometry[], lamp: [] as THREE.BufferGeometry[] };
     const energy = { pos: [] as number[], d: [] as number[], s: [] as number[], seed: [] as number[] };
     const vents: THREE.Vector3[] = [];
@@ -761,15 +700,15 @@ export function buildTable(opts: { fonts: Fonts; aniso: number; hi: boolean; sur
 
     // Trunks first; they reserve the grid for the generated fill.
     const grid = new Grid();
-    const laid = trunks(mode, spots);
+    const laid = trunks(mode, ext);
     for (const b of laid) {
       const c = addBundle(b);
       grid.markLine(c, (b.lanes * b.gap) / 2 + 0.35);
     }
 
     // The stage stays clean: nothing generated inside it.
-    const reach = Math.max(...spots.map((p) => Math.abs(p.x))) + PAD.w / 2 + 1.6;
-    const front = Math.max(...spots.map((p) => p.z)) + PAD.d / 2 + 2.5;
+    const reach = ext.reach + 1.2;
+    const front = ext.front + 2.2;
     grid.markRect(-reach, -3, reach, front);
     const keep = (x: number, z: number) => !(Math.abs(x) < reach && z > -3.2 && z < front) && Math.abs(x) < 24 && z > -24 && z < 20;
     for (const b of fillTraces(grid, keep, 777, hi ? 26 : 16)) addBundle(b);
@@ -800,7 +739,7 @@ export function buildTable(opts: { fonts: Fonts; aniso: number; hi: boolean; sur
 
     // A few vent panels and capacitor rows off the trunks, never on the stage.
     const r = rng(mode === "wide" ? 31 : 37);
-    const side = Math.max(...spots.map((p) => Math.abs(p.x))) + PAD.w / 2 + (mode === "wide" ? 1.0 : 0.75);
+    const side = ext.reach + (mode === "wide" ? 1.0 : 0.75);
     const fixtures: [number, number, number, "vent" | "caps"][] = [
       [-(side + 1.3), -1.2, 0, "vent"],
       [side + 1.9, -1.35, 0, "caps"],
@@ -859,40 +798,7 @@ export function buildTable(opts: { fonts: Fonts; aniso: number; hi: boolean; sur
     em.frustumCulled = false;
     group.add(em);
 
-    // Pads: a rubber mat, four lit corner brackets, a printed label.
-    const pads: Pad[] = spots.map((spot, i) => {
-      const m = modules[i];
-      const g = new THREE.Group();
-      g.position.set(spot.x, 0, spot.z);
-      g.rotation.y = spot.yaw;
-      const mat = new THREE.Mesh(block(PAD.w, PAD.h, PAD.d, 0.006), darkMat);
-      mat.receiveShadow = true;
-      g.add(mat);
-      const light = glowMat(m.color, 0.12);
-      const arm = 0.2;
-      const t = 0.022;
-      const bracket: THREE.BufferGeometry[] = [];
-      for (const sx of [-1, 1])
-        for (const sz of [-1, 1]) {
-          const cx = sx * (PAD.w / 2 + 0.05);
-          const cz = sz * (PAD.d / 2 + 0.05);
-          bracket.push(bake(new THREE.BoxGeometry(arm, 0.006, t), at(cx - (sx * arm) / 2 + (sx * t) / 2, 0.003, cz)));
-          bracket.push(bake(new THREE.BoxGeometry(t, 0.006, arm), at(cx, 0.003, cz - (sz * arm) / 2 + (sz * t) / 2)));
-        }
-      // The status bar under the label: dim with a card home, lit when it's out.
-      bracket.push(bake(new THREE.BoxGeometry(0.26, 0.006, 0.03), at(PAD.w / 2 - 0.13 - 0.04, 0.003, PAD.d / 2 + 0.13)));
-      const bm = new THREE.Mesh(mergeGeometries(bracket)!, light);
-      g.add(bm);
-      const labelMat = new THREE.MeshStandardMaterial({ map: padLabel(m, fonts, aniso), transparent: true, roughness: 0.7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2 });
-      const label = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.15), labelMat);
-      label.rotation.x = -Math.PI / 2;
-      label.position.set(-PAD.w / 2 + 0.4 - 0.02, 0.002, PAD.d / 2 + 0.2);
-      g.add(label);
-      group.add(g);
-      return { spot, light, group: g };
-    });
-
-    return { mode, group, pads, vents, spots };
+    return { mode, group, vents, stage };
   }
 
   function buildMotes(vents: THREE.Vector3[]) {
@@ -992,8 +898,9 @@ export function buildTable(opts: { fonts: Fonts; aniso: number; hi: boolean; sur
     root,
     uniforms,
     setMode,
-    get pads() {
-      return layout!.pads;
+    /** The composition for the current shape: where the case and props sit, how the wide camera leans. */
+    get stage() {
+      return layout!.stage;
     },
     get mode() {
       return layout!.mode;

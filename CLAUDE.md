@@ -56,13 +56,29 @@ weathered cream enamel. `/` reads first; `/play` is the toy.
 `/play`'s centrepiece is the card reader in `play/engine/reader.ts` (procedural weathering in
 `weathering.ts`, live LCD in `screen.ts`), standing on the desk in `play/engine/table.ts`: a plane bigger
 than any frame, conduits whose energy is one shader keyed on network distance from the reader (packets
-flow in, surges flow out), a few greebles, and one lit pad per card. The pad layout depends on the
-viewport's shape (`deckLayout`: an arc when wide, 2-3-2 rows when tall) and the network is rebuilt when
-it changes. The wide camera is solved on every resize to fit the reader and every pad into the region the
-HUD leaves free — don't hand-tune a distance. Picking a card lifts it, flies it to the slot, feeds it in
-and latches; then the camera goes in to the display. Its EJECT, CHG, SND lever and knobs are real raycast
-controls, and every panel is also reachable from the DOM module bay and keys 1–7. Its tokens live in `play.css`,
-scoped under `.play-root`. `/arcade` and its NEXUS-9 boss battle were deleted on 2026-08-25.
+flow in, surges flow out), and a few greebles. The reader is turned toward a **cartridge case**
+(`engine/case.ts`): a hard-shell case with its lid propped open, the seven cartridges standing in a foam
+rack that climbs a step per slot so each card shows its number and code word over the shoulder of the one in
+front, plus desk props (`engine/props.ts`: mug, screwdriver, tape, cable coil, cells, bolts — inert, never on
+the click path). **Where everything sits is `engine/layout.ts`**: the case and prop spots, and the wide
+camera's yaw, roll and elevation, per viewport shape (wide / tall). The network is rebuilt when the shape
+changes and routes round the case.
+The wide shot deliberately **leans** (yaw + roll): the reader is big, turned, and its body may run off the
+frame. The camera is solved on every resize (`fitWide`) to fit the reader's display, slot and CHG/EJECT row
+plus the whole case into the region the HUD leaves free — don't hand-tune a distance. The close-up goes to the
+display square and level, so the push-in straightens as it arrives.
+**Choosing a card is the selector** (`engine/selector.ts`, driven from `stage.ts`): click the case (or press
+Enter / Space / C) and every cartridge lifts out and fans in front of the lens — the one in focus at the centre,
+on a slow turntable (face front, then one full turn; never in reduced motion), the ones before and after it
+stacked to its left and right. It is a *continuous* coverflow: a card's pose is a function of its fractional
+distance from the focus, so drags scrub it. Poses are in **camera space** and are set after the frame's camera
+is final. Click a neighbour to bring it to the middle, the middle card (or Enter, or the bar's Insert) to
+insert it; ◀ ▶ / arrows / wheel / drag / swipe browse; Esc or Back returns the cards to the case. The DOM
+caption bar in `play-experience.tsx` mirrors focus and is the keyboard/touch path to the same controls. Insert
+flies the card from the fan to the slot, feeds it in and latches; then the camera goes in to the display. Its
+EJECT, CHG, SND lever and knobs are real raycast controls, and every panel is also reachable from the DOM
+module bay and keys 1–7 (which skip the fan and pull the card straight out of the case). Its tokens live in
+`play.css`, scoped under `.play-root`. `/arcade` and its NEXUS-9 boss battle were deleted on 2026-08-25.
 The reader's face is laid out in the `L` table, and in development every part registers a footprint
 that `checkLayout` tests against every other and against the face outline. **A collision prints a
 `[reader] layout overlaps` console warning — keep it silent.** The weathering masks are procedural;
@@ -150,6 +166,12 @@ Each is commented in place; the comment is the full rationale.
   AA with ink except magenta (4.3:1 → 4.8:1 lifted). Fills without type keep the pure spot.
 - **The status tag is `#2f63e6`, not `/play`'s `#3d7bff`** — white 13px type on `#3d7bff` is 3.9:1.
 - **`weathering.ts` must stay three-free** (see Architecture).
+- **The desk lamp is turned down while the selector's fan is out** (`poseCards`). It hangs almost at the lens,
+  so a card held up in front of it is lit ~4× as hard as the desk and blooms to white. The fan is lit by its
+  own two lamps (`selLight`, `selRim`); both are `visible = false` at rest and `init` compiles both shader
+  variants, so opening the case does not hitch.
+- **The wide camera's lean and the fan's camera-space poses are not bugs to level.** The roll is
+  `camRoll` in `layout.ts`; the fan is posed with the camera's own quaternion so it always reads upright.
 - **`play.css` resets `.play-root .bay`.** `globals.css` owns a `.bay` (the home section wrapper, with a
   deep top padding); without the reset it is an invisible box over the desk that eats the front cards' hover.
 

@@ -32,14 +32,14 @@ export function rng(seed: number) {
   };
 }
 
-function canvas(w: number, h: number) {
+export function canvas(w: number, h: number) {
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
   return [c, c.getContext("2d")!] as const;
 }
 
-function tex(c: HTMLCanvasElement, maxAniso: number) {
+export function tex(c: HTMLCanvasElement, maxAniso: number) {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = maxAniso;
@@ -47,7 +47,7 @@ function tex(c: HTMLCanvasElement, maxAniso: number) {
   return t;
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -70,7 +70,7 @@ function grain(ctx: CanvasRenderingContext2D, w: number, h: number, amount: numb
   ctx.putImageData(img, 0, 0);
 }
 
-function barcode(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, seed: number, color: string) {
+export function barcode(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, seed: number, color: string) {
   const r = rng(seed);
   ctx.fillStyle = color;
   let cx = x;
@@ -81,7 +81,7 @@ function barcode(ctx: CanvasRenderingContext2D, x: number, y: number, w: number,
   }
 }
 
-function hazard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, a: string, b: string, step = 18) {
+export function hazard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, a: string, b: string, step = 18) {
   ctx.save();
   ctx.beginPath();
   ctx.rect(x, y, w, h);
@@ -101,7 +101,7 @@ function hazard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, 
   ctx.restore();
 }
 
-function fitText(ctx: CanvasRenderingContext2D, text: string, font: (px: number) => string, maxW: number, start: number) {
+export function fitText(ctx: CanvasRenderingContext2D, text: string, font: (px: number) => string, maxW: number, start: number) {
   let px = start;
   ctx.font = font(px);
   while (ctx.measureText(text).width > maxW && px > 10) {
