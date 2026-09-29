@@ -219,6 +219,8 @@ export class Stage {
     tl: null as gsap.core.Timeline | null,
   };
   private caseHover = { v: 0 };
+  /** When the visitor last did anything, and whether the ticker is currently held to 30 fps. */
+  private activity = { at: 0, throttled: false, check: 0 };
   /** Seconds of nobody-doing-anything, and whether the case has ever been opened (after which the nudge retires). */
   private idle = { t: 0, opened: false };
   private ledK: number[] = [];
@@ -290,7 +292,9 @@ export class Stage {
 
     const r = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance", alpha: false, stencil: false });
     this.renderer = r;
-    this.dpr = Math.min(window.devicePixelRatio || 1, this.low ? 1.5 : 1.75);
+    // Cost is per pixel and the post stack is heavy (half-float target, MSAA, bloom): 1.5 is
+    // indistinguishable from 1.75 under the scanlines and grain, and a third cheaper.
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.low ? 1.25 : 1.5);
     r.setPixelRatio(this.dpr);
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.toneMappingExposure = 1.05;
@@ -357,7 +361,7 @@ export class Stage {
     this.buildSelector();
 
     // Post: MSAA on the composer's own target — renderer AA does not reach it.
-    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: this.low ? 2 : 4 });
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: this.low || this.dpr >= 1.5 ? 2 : 4 });
     this.composer = new EffectComposer(r, rt);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.4, 0.35, 1.0);
@@ -679,6 +683,7 @@ export class Stage {
     window.addEventListener("pointercancel", this.onCancel);
     el.addEventListener("pointerleave", this.onLeave);
     el.addEventListener("wheel", this.onWheel, { passive: false });
+    window.addEventListener("keydown", this.markActive);
   }
 
   /** A wheel or trackpad flick steps through the fan, one card per notch. */
@@ -701,7 +706,18 @@ export class Stage {
   };
   private wheelStep = 0;
 
+  private markActive = () => {
+    const a = this.activity;
+    a.at = performance.now();
+    // Input lifts the cap now, not at the next idle check.
+    if (a.throttled) {
+      a.throttled = false;
+      gsap.ticker.fps(0);
+    }
+  };
+
   private setPtr(e: PointerEvent) {
+    this.markActive();
     const r = this.container.getBoundingClientRect();
     this.ptr.x = e.clientX - r.left;
     this.ptr.y = e.clientY - r.top;
@@ -1915,10 +1931,11 @@ export class Stage {
     }
     setGlow(this.case.stripe, this.accentHex, (0.7 + 0.3 * Math.sin(t * 1.7)) * (1 + this.caseHover.v * 2.4) * Math.min(1, this.energy.base + 0.001) * (open ? 0.35 : 1));
     this.updateSpin(dt);
+    this.throttleWhenIdle();
     // Left alone at the desk, the row nods once in a while: open me.
     if (this.booted && !this.idle.opened && !this.opts.reduced && this.sel.state === "closed" && this.seated < 0 && !this.busy && this.hovered === null && !this.ptr.down) {
       this.idle.t += dt;
-      if (this.idle.t > 8) {
+      if (this.idle.t > 14) {
         this.idle.t = 0;
         this.carts.forEach((cs, i) => cs.mode === "case" && this.hopCard(cs, 0.14, i * 0.05));
       }
@@ -2087,6 +2104,31 @@ export class Stage {
     }
   }
 
+  /**
+   * Nothing is moving and nobody is touching it: hold the ticker to 30 fps. The
+   * scene is heavy (a half-float multisampled target, bloom, a shadow pass), and a
+   * still desk rendered at 60 fps is just heat. Any input, tween, camera move or
+   * charge lifts the cap on the next frame. (Every ticker user is affected, which
+   * is fine — while the desk is idle so is everything else — and dispose() lifts it.)
+   */
+  private throttleWhenIdle() {
+    const a = this.activity;
+    if (++a.check % 6) return;
+    const calm =
+      this.booted &&
+      performance.now() - a.at > 1800 &&
+      this.sel.state === "closed" &&
+      !this.busy &&
+      !this.charging &&
+      this.trauma < 0.01 &&
+      this.simScale === 1 &&
+      this.fx.flash < 0.01 &&
+      gsap.globalTimeline.getChildren(false, true, true).length === 0;
+    if (calm === a.throttled) return;
+    a.throttled = calm;
+    gsap.ticker.fps(calm ? 30 : 0);
+  }
+
   private hoverInfo(): FrameInfo["hover"] {
     const h = this.hovered;
     const rd = this.reader;
@@ -2114,6 +2156,8 @@ export class Stage {
     gsap.ticker.remove(this.tick);
     gsap.globalTimeline.timeScale(1);
     this.ro?.disconnect();
+    window.removeEventListener("keydown", this.markActive);
+    gsap.ticker.fps(0);
     window.removeEventListener("pointermove", this.onMove);
     window.removeEventListener("pointerup", this.onUp);
     window.removeEventListener("pointercancel", this.onCancel);
