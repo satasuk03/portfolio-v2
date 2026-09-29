@@ -12,6 +12,11 @@
  * Sequencing lives in one place, `select`: close panel → eject → load → open
  * panel, each awaited. A click that arrives mid-sequence is queued, not
  * dropped and not interleaved.
+ *
+ * The cartridge selector is the stage's (it is 3D, and it browses in the
+ * engine's own frame); React mirrors its state — open, and which card is in
+ * focus — to draw the caption bar, which is also the keyboard and touch path
+ * to the same controls (◀ ▶ Insert Back), and to announce the focus.
  */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -84,6 +89,8 @@ export function PlayExperience() {
   const [hover, setHover] = useState<number | null>(null);
   const [muted, setMuted] = useState(false);
   const [touch, setTouch] = useState(false);
+  const [sel, setSel] = useState({ open: false, focus: 0 });
+  const selRef = useRef(sel);
 
   const setPhase = (p: Phase) => {
     phaseRef.current = p;
@@ -218,6 +225,17 @@ export function PlayExperience() {
     if (q !== undefined && q !== seatedRef.current) void select(q);
   }, []);
 
+  /** The case was clicked (or its key pressed): send any seated card home first, then open. */
+  const openCase = useCallback(async () => {
+    const s = stage.current;
+    if (!s || phaseRef.current !== "live") return;
+    // A click that lands while a sequence is finishing waits for it, rather than vanishing.
+    for (let i = 0; busyRef.current && i < 20; i++) await new Promise((r) => window.setTimeout(r, 150));
+    if (busyRef.current) return;
+    if (seatedRef.current !== null) await select(null);
+    stage.current?.openSelector();
+  }, [select]);
+
   // Panel open choreography: squash in, stretch out, cards on elastic.
   useLayoutEffect(() => {
     if (openIdx === null) return;
@@ -295,6 +313,11 @@ export function PlayExperience() {
           onCharge,
           onDischarge,
           onFrame,
+          onCase: () => void openCase(),
+          onSelector: (s) => {
+            selRef.current = s;
+            setSel(s);
+          },
         }, { reduced });
         await st.init();
         if (dead) {
@@ -324,7 +347,7 @@ export function PlayExperience() {
       stage.current = null;
       html.classList.remove("play-lock");
     };
-  }, [select, onCharge, onDischarge, onFrame]);
+  }, [select, openCase, onCharge, onDischarge, onFrame]);
 
   // A panel is open and the viewport changes shape (rotation, a resized
   // window): refit the close-up to the space the panel now leaves.
@@ -423,11 +446,26 @@ export function PlayExperience() {
       }
       if (phaseRef.current !== "live") return;
       const n = Number(e.key);
+      const onControl = (e.target as HTMLElement | null)?.closest?.("button, a, [tabindex]");
       if (n >= 1 && n <= playModules.length) {
         keyboardRef.current = true;
         void select(n - 1);
+      } else if (selRef.current.open) {
+        // With the fan out, the arrows browse it; Enter inserts what is in front.
+        if (e.key === "ArrowLeft") stage.current?.stepFocus(-1);
+        else if (e.key === "ArrowRight") stage.current?.stepFocus(1);
+        else if (e.key === "Escape") stage.current?.closeSelector();
+        else if ((e.key === "Enter" || e.key === " ") && !onControl) {
+          e.preventDefault();
+          stage.current?.insertFocused();
+        } else if (e.key === "m" || e.key === "M") toggleMute();
       } else if (e.key === "Escape" && seatedRef.current !== null) {
         void select(null);
+      } else if (((seatedRef.current === null && (e.key === "Enter" || e.key === " ")) || e.key === "c" || e.key === "C") && !onControl) {
+        // Enter / Space open the case only when nothing is seated — Space is how a panel scrolls.
+        e.preventDefault();
+        keyboardRef.current = true;
+        void openCase();
       } else if (e.key === "ArrowLeft") stage.current?.nudge(-1.2);
       else if (e.key === "ArrowRight") stage.current?.nudge(1.2);
       else if (e.key === "m" || e.key === "M") toggleMute();
@@ -455,7 +493,7 @@ export function PlayExperience() {
   const Body = openModule ? panelBodies[openModule.id] : null;
 
   return (
-    <div ref={rootRef} className="play-root" data-phase={phase} data-open={openIdx !== null ? "true" : "false"} data-touch={touch ? "true" : "false"}>
+    <div ref={rootRef} className="play-root" data-phase={phase} data-open={openIdx !== null ? "true" : "false"} data-sel={sel.open ? "true" : "false"} data-touch={touch ? "true" : "false"}>
       <div ref={stageRef} className="play-stage">
         <canvas ref={fxRef} className="play-fx" aria-hidden />
       </div>
@@ -576,6 +614,36 @@ export function PlayExperience() {
           </button>
         ))}
       </nav>
+
+      {/* ── the selector's caption: the same controls as the fan, for keys and touch ── */}
+      <div className="sel-bar" data-open={sel.open ? "true" : "false"} style={{ ["--c" as string]: playModules[sel.focus].color }} role="group" aria-label="Cartridge selector" inert={!sel.open}>
+        <button type="button" className="sel-nav" onClick={() => stage.current?.stepFocus(-1)} disabled={sel.focus === 0} aria-label="Previous cartridge">
+          <span aria-hidden>◀</span>
+        </button>
+        <div className="sel-cap">
+          <span className="sel-n hud-mono">
+            {playModules[sel.focus].n} / {String(playModules.length).padStart(2, "0")}
+          </span>
+          <span className="sel-name">{playModules[sel.focus].label}</span>
+          <span className="sel-code hud-mono">{playModules[sel.focus].code}</span>
+        </div>
+        <button type="button" className="sel-nav" onClick={() => stage.current?.stepFocus(1)} disabled={sel.focus === playModules.length - 1} aria-label="Next cartridge">
+          <span aria-hidden>▶</span>
+        </button>
+        <button type="button" className="sel-insert" onClick={() => stage.current?.insertFocused()}>
+          <span className="hud-mono">{playCopy.insert}</span>
+          <span aria-hidden>▸</span>
+        </button>
+        <button type="button" className="sel-back" onClick={() => stage.current?.closeSelector()}>
+          <span className="hud-mono">{playCopy.back}</span>
+        </button>
+        <p className="sel-hint hud-mono" aria-hidden>
+          {touch ? playCopy.hints.selectorTouch : playCopy.hints.selector}
+        </p>
+      </div>
+      <p className="sr-only" aria-live="polite">
+        {sel.open ? `${playModules[sel.focus].n} of ${playModules.length}: ${playModules[sel.focus].label}. Press Enter to insert.` : ""}
+      </p>
 
       {/* ── the panel ───────────────────────────────────────────────────── */}
       {openModule && Body ? (

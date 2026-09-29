@@ -52,9 +52,13 @@ export const playCopy = {
   bootHint: "Click, tap or press Enter. Sound on.",
   loading: "Loading unit",
   hints: {
-    desktop: "Drag to look · Click a card · Hold the core",
-    touch: "Swipe to look · Tap a card · Hold the core",
+    desktop: "Drag to look · Open the case · Hold the core",
+    touch: "Swipe to look · Tap the case · Hold the core",
+    selector: "Drag or ← → to browse · Click or Enter to insert",
+    selectorTouch: "Swipe to browse · Tap the card to insert",
   },
+  insert: "Insert",
+  back: "Back",
   /* The link back to /. It was "Print edition" while / was the printed
      manual; / is now the reading edition of the same hangar. */
   homeEdition: "Reading edition",

@@ -2,9 +2,10 @@
  * The stage: one WebGL scene, one Canvas 2D particle layer, one clock.
  *
  * The scene is a desk. The reader stands on a table that runs off into the
- * dark in every direction; the cards lie on the table in front of it, each
- * in its own lit pad. Picking a card lifts it, flies it to the slot, feeds it
- * in, and the camera goes in to the reader's display. Ejecting reverses it.
+ * dark in every direction, turned toward a case of cartridges. Opening the
+ * case lifts the cards out and fans them in front of the lens (selector.ts);
+ * picking one flies it to the slot, feeds it in, and the camera goes in to the
+ * reader's display. Ejecting reverses it, and the card goes home to the case.
  *
  * Clock — everything, including the render, runs on gsap.ticker, so a
  * timeline and the frame that draws it can never be a tick apart.
@@ -21,10 +22,13 @@
  * never left running under a tween that is trying to stop it.
  *
  * Camera — a wide shot over the desk and a close-up on the reader's display,
- * blended by `cam.close`. The wide shot is FITTED, not tuned: on every resize
- * the distance and aim are solved so the reader and every pad land inside the
- * part of the viewport the HUD leaves free. The close-up is fitted to the
- * region the DOM panel leaves free.
+ * blended by `cam.close`. The wide shot leans (yaw and roll, layout.ts); the
+ * close-up is square and level, so the push-in straightens as it arrives. The
+ * wide shot is FITTED, not tuned: on every resize the distance and aim are
+ * solved so the reader's display and controls and the whole case land inside
+ * the part of the viewport the HUD leaves free — the rest of the reader's body
+ * may run off the edge. The close-up is fitted to the region the DOM panel
+ * leaves free.
  */
 
 import * as THREE from "three";
@@ -43,7 +47,11 @@ import { readFonts } from "./textures";
 import { CART, buildCartridge, makeMaterials, setGlow, type Cartridge } from "./models";
 import { BODY, HOVER_Y, INSERT_Y, SCREEN_Y, SLOT_TOP, buildReader, type Reader } from "./reader";
 import { loadSurfaces } from "./surfaces";
-import { PAD, buildTable, type LayoutMode, type Table } from "./table";
+import { buildTable, type Table } from "./table";
+import { buildCase, type Case } from "./case";
+import { buildProps } from "./props";
+import { stageLayout as stageLayoutOf, type LayoutMode } from "./layout";
+import { SPIN, selectorLayout, selectorPose, type SelLayout, type SelPose } from "./selector";
 
 export type Rect = { x: number; y: number; w: number; h: number };
 export type FrameInfo = {
@@ -60,28 +68,40 @@ export type StageEvents = {
   onCharge: (v: number) => void;
   onDischarge: (count: number) => void;
   onFrame: (f: FrameInfo) => void;
+  /** The case was clicked: the shell decides whether to eject first, then opens the selector. */
+  onCase: () => void;
+  /** The selector opened, closed or changed focus. */
+  onSelector: (s: SelectorInfo) => void;
 };
+
+export type SelectorInfo = { open: boolean; focus: number };
 
 type CartState = {
   c: Cartridge;
-  /** pad: lying in its pad, posed by the frame · flight: a timeline owns it · seated: in the slot */
-  mode: "pad" | "flight" | "seated";
+  /** case: posed by the frame — in its slot, or on its way to and from the fan (`sel.k`) · flight: a timeline owns it · seated: in the slot */
+  mode: "case" | "flight" | "seated";
   hover: { v: number };
-  /** A hop off the pad — a surge passing, a discharge. y up, r yaw, tilt pitch. */
+  /** A hop out of the slot — a surge passing, a discharge. y up, r yaw, tilt pitch. */
   hop: { y: number; r: number; tilt: number };
   enter: { y: number };
+  /** 0: standing in the case · 1: in the selector fan. */
+  sel: { k: number };
+  /** The eject flight, so a fast re-load can cancel it. */
+  flight: gsap.core.Timeline | null;
   blob: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
 };
 
-type Hover = number | "core" | "eject" | "charge" | "toggle" | "knob0" | "knob1" | "knob2" | null;
+type Hover = number | "case" | "core" | "eject" | "charge" | "toggle" | "knob0" | "knob1" | "knob2" | null;
 
 const TAU = Math.PI * 2;
 const IDLE_ACCENT = "#1fc3ec";
 const FOG = 0.042;
 /** The accent spill light at rest. */
 const CORE_IDLE = 1.1;
-/** A card lying in its pad: centre height. */
-const REST_Y = PAD.h + CART.d / 2;
+/** The selector's key light: a lamp in front of the lens, only lit while the fan is out. */
+const SEL_LIGHT = 13;
+/** …and the coloured backlight that rims the fan in the focused cartridge's colour. */
+const SEL_RIM = 16;
 const FLAT = -Math.PI / 2;
 /** World z of the reader's face. */
 const FACE_Z = BODY.d / 2;
@@ -141,6 +161,8 @@ export class Stage {
   private bloom!: UnrealBloomPass;
   private final!: ShaderPass;
   private table!: Table;
+  private case!: Case;
+  private propSets: Partial<Record<LayoutMode, THREE.Group>> = {};
   private reader!: Reader;
   private carts: CartState[] = [];
   private dust!: THREE.Points;
@@ -159,8 +181,8 @@ export class Stage {
   private baseFov = 30;
   private mode: LayoutMode = "wide";
   /** The solved wide shot: aim, distance, pitch, and a pixel shift to centre it in the free region. */
-  private wide = { target: new THREE.Vector3(0, 1.2, 1.6), dist: 14, pitch: 0.62, shiftX: 0, shiftY: 0 };
-  private cam = { dist: 1, yaw: 0, pitch: 0, fovKick: 0, shiftX: 0, shiftY: 0, close: 0, visW: 1, visH: 1 };
+  private wide = { target: new THREE.Vector3(0, 1.2, 1.6), dist: 14, pitch: 0.62, yaw: 0, roll: 0, shiftX: 0, shiftY: 0 };
+  private cam = { dist: 1, yaw: 0, pitch: 0, fovKick: 0, shiftX: 0, shiftY: 0, close: 0, visW: 1, visH: 1, lift: 0 };
   /** Drag to look round the desk: an offset in yaw that springs home. */
   private look = { yaw: 0, vel: 0 };
   private parallax = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -179,6 +201,32 @@ export class Stage {
   private accentHex = IDLE_ACCENT;
   /** The slot's lip lights: idle accent, the hovered card's colour, or a flare. */
   private slot = { k: 1.3, flare: 0, color: new THREE.Color(IDLE_ACCENT), target: new THREE.Color(IDLE_ACCENT) };
+  /** The selector: state machine, the fractional focus the fan is posed from, and its turntable. */
+  private sel = {
+    state: "closed" as "closed" | "opening" | "open" | "closing",
+    focus: 0,
+    f: { v: 0 },
+    L: null as SelLayout | null,
+    spin: { a: 0 },
+    spinState: "dwell" as "dwell" | "turn" | "settle",
+    spinT: 0,
+    turnFrom: 0,
+    tilt: { x: 0, y: 0 },
+    scrim: { o: 0 },
+    light: { k: 0 },
+    scrub: { on: false, vel: 0, t: 0 },
+    wheel: { acc: 0, t: 0 },
+    tl: null as gsap.core.Timeline | null,
+  };
+  private caseHover = { v: 0 };
+  /** Seconds of nobody-doing-anything, and whether the case has ever been opened (after which the nudge retires). */
+  private idle = { t: 0, opened: false };
+  private ledK: number[] = [];
+  private scrim!: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  private selLight!: THREE.PointLight;
+  private selRim!: THREE.PointLight;
+  private rimColor = new THREE.Color("#1fc3ec");
+  private tmpColor = new THREE.Color();
   private charge = 0;
   private charging = false;
   private chargeHeld = 0;
@@ -192,7 +240,7 @@ export class Stage {
   private link: { to: () => Vec; color: string } | null = null;
 
   // input
-  private ptr = { x: 0, y: 0, ndc: new THREE.Vector2(-9, -9), down: false, sx: 0, sy: 0, lx: 0, dragging: false, downOn: null as Hover, fine: true };
+  private ptr = { x: 0, y: 0, ndc: new THREE.Vector2(-9, -9), down: false, sx: 0, sy: 0, lx: 0, dragging: false, downOn: null as Hover, fine: true, touch: false };
   private hovered: Hover = null;
   private pressTimer = 0;
   private tick = (_t: number, dtMs: number) => this.frame(dtMs / 1000);
@@ -200,6 +248,14 @@ export class Stage {
   private disposed = false;
   private tmp = new THREE.Vector3();
   private tmp2 = new THREE.Vector3();
+  private pA = new THREE.Vector3();
+  private pB = new THREE.Vector3();
+  private camUp = new THREE.Vector3();
+  private qA = new THREE.Quaternion();
+  private qB = new THREE.Quaternion();
+  private qT = new THREE.Quaternion();
+  private eT = new THREE.Euler();
+  private selPose: SelPose = { x: 0, y: 0, z: 0, yaw: 0, scale: 1 };
   private box = new THREE.Box3();
   private q = new THREE.Quaternion();
 
@@ -260,6 +316,16 @@ export class Stage {
     const mats = makeMaterials();
     this.reader = buildReader(fonts, aniso, mats, !this.low, this.modules.length, surf);
     this.scene.add(this.reader.root);
+    this.case = buildCase(this.modules, fonts, aniso, mats);
+    this.scene.add(this.case.root);
+    this.ledK = this.modules.map(() => 0.42);
+    // Both compositions' props exist from the start; the shape of the viewport picks one.
+    for (const mode of ["wide", "tall"] as const) {
+      const g = buildProps(stageLayoutOf(mode).props, mats);
+      g.visible = false;
+      this.propSets[mode] = g;
+      this.scene.add(g);
+    }
     const blobTex = blobTexture();
     const blobMat = (o: number) => new THREE.MeshBasicMaterial({ map: blobTex, color: "#000", transparent: true, opacity: o, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4 });
     const readerBlob = new THREE.Mesh(new THREE.PlaneGeometry(BODY.w + 1.1, 1.9), blobMat(0.75));
@@ -273,7 +339,7 @@ export class Stage {
       blob.rotation.order = "YXZ";
       blob.renderOrder = 1;
       this.scene.add(blob);
-      return { c, mode: "pad", hover: { v: 0 }, hop: { y: 0, r: 0, tilt: 0 }, enter: { y: 0 }, blob } as CartState;
+      return { c, mode: "case", hover: { v: 0 }, hop: { y: 0, r: 0, tilt: 0 }, enter: { y: 0 }, sel: { k: 0 }, flight: null, blob } as CartState;
     });
     // Everything solid casts and receives; glass and glows do neither.
     for (const o of [this.reader.root, ...this.carts.map((cs) => cs.c.root)]) {
@@ -288,6 +354,7 @@ export class Stage {
     }
     this.buildDust();
     this.buildShock();
+    this.buildSelector();
 
     // Post: MSAA on the composer's own target — renderer AA does not reach it.
     const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: this.low ? 2 : 4 });
@@ -310,6 +377,8 @@ export class Stage {
     this.ro.observe(this.container);
     this.bindInput();
 
+    this.warmUp(false);
+    this.warmUp(true);
     this.prepareAssembly();
     // Standby: the desk is dark, the network barely live, the reader not yet built.
     const u = this.table.uniforms;
@@ -322,8 +391,6 @@ export class Stage {
 
     gsap.ticker.lagSmoothing(250, 33);
     gsap.ticker.add(this.tick);
-    // Compile every material now so the first boot frame does not hitch.
-    r.compile(this.scene, this.camera);
   }
 
   private keyIntensity = 400;
@@ -391,6 +458,35 @@ export class Stage {
     this.scene.add(this.shock);
   }
 
+  /** The dimmer behind the fan, and the lamp that lights it. */
+  private buildSelector() {
+    // A vignette: lighter in the middle, near-black at the edges.
+    const S = 256;
+    const c = document.createElement("canvas");
+    c.width = c.height = S;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createRadialGradient(S / 2, S / 2, S * 0.08, S / 2, S / 2, S * 0.72);
+    g.addColorStop(0, "rgba(0,0,0,0.74)");
+    g.addColorStop(0.55, "rgba(0,0,0,0.86)");
+    g.addColorStop(1, "rgba(0,0,0,0.96)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, S, S);
+    const map = new THREE.CanvasTexture(c);
+    this.scrim = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ map, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false }),
+    );
+    this.scrim.renderOrder = 5;
+    this.scrim.visible = false;
+    this.scrim.frustumCulled = false;
+    this.scene.add(this.scrim);
+    this.selLight = new THREE.PointLight("#fff2e0", 0, 0, 2);
+    this.selRim = new THREE.PointLight("#1fc3ec", 0, 0, 2);
+    // Hidden at rest so the desk's shaders don't pay for them; init compiles both variants.
+    this.selLight.visible = this.selRim.visible = false;
+    this.scene.add(this.selLight, this.selRim);
+  }
+
   // ── layout ────────────────────────────────────────────────────────────────
 
   private resize() {
@@ -412,62 +508,66 @@ export class Stage {
     const aspect = w / h;
     this.mode = aspect < 0.9 ? "tall" : "wide";
     this.table.setMode(this.mode);
-    this.syncPads();
+    this.applyLayout();
     this.baseFov = aspect < 0.9 ? 40 : aspect < 1.3 ? 34 : 30;
     this.camera.aspect = aspect;
+    this.sel.L = selectorLayout(w, h, this.baseFov);
     this.fitWide();
   }
 
-  /** Pad lights follow their cards — also after a layout change rebuilds the pads. */
-  private syncPads() {
-    this.table.pads.forEach((p, i) => {
-      const cs = this.carts[i];
-      if (!cs) return;
-      const k = !cs.c.root.visible ? 0.12 : cs.mode === "pad" ? 0.6 : 3;
-      setGlow(p.light, cs.c.module.color, k);
-    });
+  /** Put the case and the props where this shape of viewport wants them. */
+  private applyLayout() {
+    const st = this.table.stage;
+    const c = this.case.root;
+    c.position.set(st.caseSpot.x, 0, st.caseSpot.z);
+    c.rotation.y = st.caseSpot.yaw;
+    c.updateMatrixWorld(true);
+    for (const m of ["wide", "tall"] as const) {
+      const g = this.propSets[m];
+      if (g) g.visible = m === this.mode;
+    }
   }
 
   /**
-   * Solve the wide shot. The pitch is fixed per layout; the distance is the
-   * smallest that fits the reader (with a card seated) and every pad and its
-   * label into the free region; the aim is nudged so the content sits in the
-   * middle of that region, and what asymmetry is left (the left rail is wider
-   * than the right margin) becomes a pixel shift of the projection.
+   * Solve the wide shot. Yaw, roll and pitch come from the composition; the
+   * distance is the smallest that fits what MUST be seen — the reader's display,
+   * slot and controls, and the whole case — into the free region; the aim is
+   * then nudged, along the camera's own right and up, until that content sits
+   * in the middle of the region. The reader's body is not in the set: it is
+   * allowed to run off the frame, which is what makes it big.
    */
   private fitWide() {
     const w = this.w;
     const h = this.h;
     const narrow = w < 760;
     // The phone's masthead rail is decoration; the desk may run under it.
-    const m = { l: narrow ? 22 : 150, r: narrow ? 18 : 64, t: narrow ? 96 : 84, b: narrow ? 120 : 104 };
+    const m = { l: narrow ? 58 : 150, r: narrow ? 18 : 64, t: narrow ? 96 : 84, b: narrow ? 120 : 104 };
     const regW = Math.max(80, w - m.l - m.r);
     const regH = Math.max(80, h - m.t - m.b);
-    const pitch = this.mode === "tall" ? 0.74 : 0.6;
+    const { pitch, camYaw: yaw, camRoll: roll } = this.table.stage;
+
     const pts: THREE.Vector3[] = [];
-    for (const x of [-BODY.w / 2 - 0.1, BODY.w / 2 + 0.1])
-      for (const y of [0, SLOT_TOP + CART.h / 2 + 0.1]) for (const z of [-0.5, 0.5]) pts.push(new THREE.Vector3(x, y, z));
-    for (const p of this.table.pads) {
-      const c = Math.cos(p.spot.yaw);
-      const s = Math.sin(p.spot.yaw);
-      for (const [lx, lz] of [
-        [-PAD.w / 2 - 0.08, -PAD.d / 2 - 0.08],
-        [PAD.w / 2 + 0.08, -PAD.d / 2 - 0.08],
-        [-PAD.w / 2 - 0.08, PAD.d / 2 + 0.3],
-        [PAD.w / 2 + 0.08, PAD.d / 2 + 0.3],
-      ])
-        pts.push(new THREE.Vector3(p.spot.x + lx * c + lz * s, 0.25, p.spot.z - lx * s + lz * c));
-    }
+    const cy = BODY.base + BODY.h / 2;
+    // The display's bezel, the mouth of the slot with a card poised over it,
+    // and the CHG / EJECT row.
+    for (const x of [-0.85, 0.85]) for (const y of [cy + 0.72 - 0.53, cy + 0.72 + 0.53]) pts.push(new THREE.Vector3(x, y, FACE_Z));
+    for (const x of [-0.7, 0.7]) pts.push(new THREE.Vector3(x, SLOT_TOP + 0.4, 0));
+    for (const x of [0.13, 0.83]) pts.push(new THREE.Vector3(x, cy - 1.19 - 0.15, FACE_Z));
+    for (const p of this.case.frame()) pts.push(p.applyMatrix4(this.case.root.matrixWorld));
+
     const cam = this.fitCam;
     cam.fov = this.baseFov;
     cam.aspect = w / h;
     cam.clearViewOffset();
     cam.updateProjectionMatrix();
-    const dir = new THREE.Vector3(0, Math.sin(pitch), Math.cos(pitch));
-    const T = new THREE.Vector3(0, 1.0, 1.6);
+    const dir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+    const T = new THREE.Vector3();
+    for (const p of pts) T.add(p);
+    T.multiplyScalar(1 / pts.length);
     const bbox = (d: number) => {
       cam.position.copy(T).addScaledVector(dir, d);
       cam.lookAt(T);
+      cam.rotateZ(roll);
       cam.updateMatrixWorld();
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const p of pts) {
@@ -482,7 +582,7 @@ export class Stage {
       return { x0, x1, y0, y1 };
     };
     let d = 14;
-    for (let pass = 0; pass < 3; pass++) {
+    for (let pass = 0; pass < 4; pass++) {
       let lo = 3;
       let hi = 90;
       for (let k = 0; k < 26; k++) {
@@ -492,19 +592,19 @@ export class Stage {
         else lo = d;
       }
       d = hi;
-      // Re-aim vertically so the content's centre is the region's centre.
+      // Re-aim so the content's centre is the region's centre.
       const b = bbox(d);
-      const cy = (b.y0 + b.y1) / 2;
-      const ry = m.t + regH / 2;
       const perPx = (2 * d * Math.tan(THREE.MathUtils.degToRad(this.baseFov / 2))) / h;
-      const up = new THREE.Vector3(0, Math.cos(pitch), -Math.sin(pitch));
-      T.addScaledVector(up, -(cy - ry) * perPx);
+      const e = cam.matrixWorld.elements;
+      T.addScaledVector(this.tmp.set(e[0], e[1], e[2]), ((b.x0 + b.x1) / 2 - (m.l + regW / 2)) * perPx);
+      T.addScaledVector(this.tmp.set(e[4], e[5], e[6]), -((b.y0 + b.y1) / 2 - (m.t + regH / 2)) * perPx);
     }
-    const b = bbox(d);
     this.wide.target.copy(T);
     this.wide.dist = d;
     this.wide.pitch = pitch;
-    this.wide.shiftX = (b.x0 + b.x1) / 2 - (m.l + regW / 2);
+    this.wide.yaw = yaw;
+    this.wide.roll = roll;
+    this.wide.shiftX = 0;
     this.wide.shiftY = 0;
   }
 
@@ -569,14 +669,6 @@ export class Stage {
     return this.project(this.tmp);
   }
 
-  /** A card's resting pose in its pad. */
-  private padPose(i: number, pos: THREE.Vector3, quat?: THREE.Quaternion) {
-    const s = this.table.pads[i].spot;
-    pos.set(s.x, REST_Y, s.z);
-    if (quat) quat.setFromEuler(new THREE.Euler(FLAT, s.yaw, 0, "YXZ"));
-    return s;
-  }
-
   // ── input ─────────────────────────────────────────────────────────────────
 
   private bindInput() {
@@ -584,9 +676,30 @@ export class Stage {
     el.addEventListener("pointerdown", this.onDown);
     window.addEventListener("pointermove", this.onMove, { passive: true });
     window.addEventListener("pointerup", this.onUp);
-    window.addEventListener("pointercancel", this.onUp);
+    window.addEventListener("pointercancel", this.onCancel);
     el.addEventListener("pointerleave", this.onLeave);
+    el.addEventListener("wheel", this.onWheel, { passive: false });
   }
+
+  /** A wheel or trackpad flick steps through the fan, one card per notch. */
+  private onWheel = (e: WheelEvent) => {
+    const w = this.sel.wheel;
+    if (this.sel.state !== "open") return;
+    e.preventDefault();
+    // Lines and pages to pixels; a pause forgets what was accumulated; and a
+    // step per 160 ms at most, so a trackpad's inertial tail is one step, not thirty.
+    const unit = e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? this.h : 1;
+    const d = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * unit;
+    if (e.timeStamp - w.t > 220) w.acc = 0;
+    w.t = e.timeStamp;
+    w.acc += d;
+    if (Math.abs(w.acc) > 46 && e.timeStamp - (this.wheelStep || 0) > 160) {
+      this.stepFocus(w.acc > 0 ? 1 : -1);
+      this.wheelStep = e.timeStamp;
+      w.acc = 0;
+    }
+  };
+  private wheelStep = 0;
 
   private setPtr(e: PointerEvent) {
     const r = this.container.getBoundingClientRect();
@@ -604,6 +717,7 @@ export class Stage {
   private onDown = (e: PointerEvent) => {
     if (!this.booted) return;
     this.setPtr(e);
+    this.ptr.touch = e.pointerType !== "mouse";
     // A mouse clicks what the target lock is showing; touch has no hover, so it picks now.
     if (!this.ptr.fine || e.pointerType !== "mouse") this.pick();
     this.ptr.down = true;
@@ -634,20 +748,49 @@ export class Stage {
     }
     this.setPtr(e);
     if (!this.ptr.down) return;
-    const dx = e.clientX - this.ptr.lx;
+    let dx = e.clientX - this.ptr.lx;
     this.ptr.lx = e.clientX;
+    const wasDragging = this.ptr.dragging;
     const onControl = this.ptr.downOn === "charge" || this.ptr.downOn === "eject";
     if (!this.charging && !onControl && Math.hypot(e.clientX - this.ptr.sx, e.clientY - this.ptr.sy) > 7) {
       this.ptr.dragging = true;
       window.clearTimeout(this.pressTimer);
     }
-    // Drag looks round the desk — only in the wide shot.
-    if (this.ptr.dragging && this.cam.close < 0.5) this.look.vel -= (dx / this.w) * (this.ptr.fine ? 7 : 10);
+    // The pixels travelled before the drag was recognised count too.
+    if (!wasDragging && this.ptr.dragging) dx = e.clientX - this.ptr.sx;
+    // Drag scrubs the fan while it is out; otherwise it looks round the desk,
+    // and only in the wide shot.
+    if (this.ptr.dragging) {
+      if (this.sel.state === "open") this.scrub(dx, e.timeStamp);
+      else if (this.sel.state === "closed" && this.cam.close < 0.5) this.look.vel -= (dx / this.w) * (this.ptr.fine ? 7 : 10);
+    }
+  };
+
+  /** The browser took the pointer away (a system gesture, an alert): let go of everything, click nothing. */
+  private onCancel = () => {
+    if (!this.ptr.down) return;
+    this.ptr.down = false;
+    this.ptr.dragging = false;
+    window.clearTimeout(this.pressTimer);
+    if (this.chargeViaButton) {
+      this.chargeViaButton = false;
+      this.pressButton(this.reader.charge, false);
+    }
+    if (this.charging) this.releaseCharge();
+    if (this.ptr.downOn === "eject") this.pressButton(this.reader.eject, false);
+    if (this.sel.scrub.on) this.endScrub(0);
+    this.ptr.ndc.set(-9, -9);
+    this.setHover(null);
   };
 
   private onUp = () => {
     if (!this.ptr.down) return;
     this.ptr.down = false;
+    // A finger leaves no hover behind: whatever it was over stops being "hovered" when it lifts.
+    if (this.ptr.touch) {
+      this.ptr.ndc.set(-9, -9);
+      window.setTimeout(() => this.setHover(null), 0);
+    }
     window.clearTimeout(this.pressTimer);
     const on = this.ptr.downOn;
     if (this.chargeViaButton) {
@@ -658,15 +801,20 @@ export class Stage {
       this.releaseCharge();
       return;
     }
-    if (this.ptr.dragging) return;
-    if (typeof on === "number") this.events.onPick(on);
+    if (this.ptr.dragging) {
+      if (this.sel.scrub.on) this.endScrub(performance.now());
+      return;
+    }
+    if (typeof on === "number") this.cardClicked(on);
+    else if (on === "case") this.events.onCase();
+    else if (on === null && this.sel.state === "open") this.closeSelector();
     else if (on === "eject") {
       this.pressButton(this.reader.eject, false);
       this.ejectPressed();
     } else if (on === "toggle") this.flipToggle();
     else if (on === "knob0" || on === "knob1" || on === "knob2") this.spinKnob(+on.slice(4));
     else if (on === "core") this.poke();
-    if (!this.ptr.fine) this.ptr.ndc.set(-9, -9);
+    if (this.ptr.touch) this.ptr.ndc.set(-9, -9);
   };
 
   private pick() {
@@ -676,12 +824,17 @@ export class Stage {
     }
     this.raycaster.setFromCamera(this.ptr.ndc, this.camera);
     const rd = this.reader;
-    const targets: THREE.Object3D[] = [rd.eject.hit, rd.charge.hit, rd.toggle.hit, ...rd.knobs.map((k) => k.hit)];
-    this.carts.forEach((cs) => cs.mode === "pad" && targets.push(cs.c.hit));
-    targets.push(rd.hit);
+    const targets: THREE.Object3D[] = [];
+    if (this.sel.state === "open") {
+      // With the fan out, the desk is behind glass: only the cards are live.
+      this.carts.forEach((cs) => cs.mode === "case" && targets.push(cs.c.hit));
+    } else if (this.sel.state === "closed") {
+      targets.push(rd.eject.hit, rd.charge.hit, rd.toggle.hit, ...rd.knobs.map((k) => k.hit), this.case.hit, rd.hit);
+    }
     const hit = this.raycaster.intersectObjects(targets, false)[0];
     if (!hit) return this.setHover(null);
     const o = hit.object;
+    if (o === this.case.hit) return this.setHover("case");
     if (o === rd.eject.hit) return this.setHover("eject");
     if (o === rd.charge.hit) return this.setHover("charge");
     if (o === rd.toggle.hit) return this.setHover("toggle");
@@ -697,6 +850,7 @@ export class Stage {
     const prev = this.hovered;
     this.hovered = h;
     if (typeof prev === "number") gsap.to(this.carts[prev].hover, { v: 0, duration: 0.35, ease: "power3.out", overwrite: true });
+    if (prev === "case") gsap.to(this.caseHover, { v: 0, duration: 0.4, ease: "power3.out", overwrite: true });
     const glowBtn = (b: Reader["eject"], on: boolean) => {
       const m = b.capMesh.material as THREE.MeshPhysicalMaterial;
       m.emissive.copy(m.color).multiplyScalar(on ? 0.35 : 0);
@@ -706,9 +860,12 @@ export class Stage {
     if (typeof h === "number") {
       gsap.to(this.carts[h].hover, { v: 1, duration: 0.55, ease: "elastic.out(1.1, 0.45)", overwrite: true });
       this.sfx.hover(h);
+    } else if (h === "case") {
+      gsap.to(this.caseHover, { v: 1, duration: 0.5, ease: "elastic.out(1.1, 0.5)", overwrite: true });
+      this.sfx.hover(3);
+      // A wave runs down the row, front to back: the cards nod as it passes.
+      if (!this.opts.reduced) this.carts.forEach((cs, i) => cs.mode === "case" && this.hopCard(cs, 0.16, i * 0.04));
     } else if (h && h !== "core") this.sfx.hover(8);
-    // The slot answers a hovered card in its colour: this is where it goes.
-    if (this.seated < 0 && !this.busy) this.slot.target.set(typeof h === "number" ? this.carts[h].c.module.color : this.accentHex);
     this.renderer.domElement.style.cursor = h !== null ? "pointer" : "";
     this.events.onHover(typeof h === "number" ? h : null);
   }
@@ -716,6 +873,235 @@ export class Stage {
   /** Keyboard look, in radians of impulse. */
   nudge(v: number) {
     if (this.cam.close < 0.5) this.look.vel += v * 0.8;
+  }
+
+  // ── the selector: open the case, browse, choose ──────────────────────────
+
+  get selectorOpen() {
+    return this.sel.state === "open" || this.sel.state === "opening";
+  }
+
+  private emitSel() {
+    this.events.onSelector({ open: this.selectorOpen, focus: this.sel.focus });
+  }
+
+  /** Slots by distance from the focus, nearest first. */
+  private byFocus(nearestFirst: boolean) {
+    const f = this.sel.focus;
+    const order = this.carts.map((_, i) => i).sort((a, b) => Math.abs(a - f) - Math.abs(b - f) || a - b);
+    return nearestFirst ? order : order.reverse();
+  }
+
+  /** Lift every cartridge out of the case and fan it in front of the lens. */
+  openSelector(): boolean {
+    const s = this.sel;
+    if (!this.booted || s.state !== "closed" || this.busy || this.seated >= 0) return false;
+    // A card still flying home to the rack: open the moment it lands.
+    if (this.carts.some((c) => c.mode === "flight")) {
+      const wait = () => {
+        if (this.disposed) return;
+        if (this.carts.some((c) => c.mode === "flight")) gsap.delayedCall(0.06, wait);
+        else this.openSelector();
+      };
+      gsap.delayedCall(0.06, wait);
+      return true;
+    }
+    this.setHover(null);
+    this.idle.opened = true;
+    s.scrub.vel = 0;
+    s.scrub.t = 0;
+    s.wheel = { acc: 0, t: 0 };
+    s.state = "opening";
+    s.f.v = s.focus;
+    gsap.killTweensOf([s.f, s.spin]);
+    s.spin.a = 0;
+    s.spinState = "dwell";
+    s.spinT = 0;
+    this.sfx.latch();
+    this.sfx.whoosh(0.55, true);
+    this.slot.target.set(this.modules[s.focus].color);
+    this.addTrauma(0.06);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        if (s.state !== "opening") return;
+        s.state = "open";
+        this.emitSel();
+      },
+    });
+    s.tl = tl;
+    tl.to(s.scrim, { o: 1, duration: 0.6, ease: "power2.out" }, 0);
+    tl.to(s.light, { k: 1, duration: 0.7, ease: "power2.out" }, 0);
+    this.byFocus(true).forEach((i, rank) => {
+      const cs = this.carts[i];
+      gsap.killTweensOf(cs.sel);
+      const at = 0.05 + rank * 0.05;
+      tl.to(cs.sel, { k: 1, duration: 0.74, ease: "power3.inOut" }, at);
+      tl.call(() => this.sfx.tick(), [], at + 0.5);
+    });
+    this.emitSel();
+    return true;
+  }
+
+  /** Put the cartridges back. `except` is a card that is leaving another way. */
+  closeSelector(except = -1) {
+    const s = this.sel;
+    if (s.state === "closed" || s.state === "closing") return;
+    s.tl?.kill();
+    s.state = "closing";
+    s.scrub.on = false;
+    s.scrub.vel = 0;
+    s.scrub.t = 0;
+    s.wheel = { acc: 0, t: 0 };
+    gsap.killTweensOf([s.f, s.spin]);
+    this.setHover(null);
+    this.slot.target.set(this.accentHex);
+    this.sfx.whoosh(0.45, false);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        s.state = "closed";
+        this.emitSel();
+      },
+    });
+    s.tl = tl;
+    tl.to(s.scrim, { o: 0, duration: 0.5, ease: "power2.in" }, 0.15);
+    tl.to(s.light, { k: 0, duration: 0.5, ease: "power2.in" }, 0.15);
+    this.byFocus(false).forEach((i, rank) => {
+      if (i === except) return;
+      const cs = this.carts[i];
+      gsap.killTweensOf(cs.sel);
+      const at = rank * 0.05;
+      tl.to(cs.sel, { k: 0, duration: 0.62, ease: "power3.inOut" }, at);
+      tl.call(() => this.settleInCase(i), [], at + 0.6);
+    });
+    this.emitSel();
+  }
+
+  /** A card back in its slot: a small slap, and the LED comes on. */
+  private settleInCase(i: number) {
+    const cs = this.carts[i];
+    if (cs.mode !== "case") return;
+    this.sfx.tick();
+    gsap.fromTo(cs.c.squash.scale, { x: 1.08, y: 1.08, z: 0.7 }, { x: 1, y: 1, z: 1, duration: 0.5, ease: "elastic.out(1.2, 0.35)", overwrite: true });
+    const p = this.cartScreen(cs);
+    this.particles.sparks(p.x, p.y + 30, { count: 5, colors: [cs.c.module.color, "#ffffff"], speed: 220, spread: 2.4, angle: -Math.PI / 2 });
+  }
+
+  setSelFocus(i: number) {
+    const s = this.sel;
+    if (s.state !== "open") return;
+    const f = THREE.MathUtils.clamp(Math.round(i), 0, this.carts.length - 1);
+    if (f === s.focus && Math.abs(s.f.v - f) < 0.02) {
+      // Nothing further that way: the fan gives, and comes back.
+      const ends = i < 0 ? -0.18 : i > f ? 0.18 : 0;
+      if (ends) gsap.fromTo(s.f, { v: f + ends }, { v: f, duration: 0.5, ease: "elastic.out(1, 0.4)", overwrite: true });
+      return;
+    }
+    s.focus = f;
+    gsap.killTweensOf(s.f);
+    gsap.to(s.f, { v: f, duration: 0.6, ease: "power3.out" });
+    // The card that leaves the centre stops turning; the new one starts facing front.
+    gsap.killTweensOf(s.spin);
+    s.spinState = "settle";
+    gsap.to(s.spin, {
+      a: s.spin.a > Math.PI ? Math.PI * 2 : 0,
+      duration: 0.45,
+      ease: "power2.out",
+      onComplete: () => {
+        s.spin.a = 0;
+        s.spinState = "dwell";
+        s.spinT = 0;
+      },
+    });
+    this.sfx.tick();
+    this.slot.target.set(this.modules[f].color);
+    this.emitSel();
+  }
+
+  stepFocus(d: number) {
+    const s = this.sel;
+    if (s.state !== "open") return;
+    const target = s.focus + d;
+    this.setSelFocus(target);
+  }
+
+  private cardClicked(i: number) {
+    if (this.sel.state !== "open") return;
+    if (i === this.sel.focus) this.events.onPick(i);
+    else this.setSelFocus(i);
+  }
+
+  /** Insert whatever is in focus. */
+  insertFocused() {
+    if (this.sel.state === "open") this.events.onPick(this.sel.focus);
+  }
+
+  private scrub(dx: number, now: number) {
+    const s = this.sel;
+    const L = s.L;
+    if (!L) return;
+    s.scrub.on = true;
+    gsap.killTweensOf(s.f);
+    const d = -dx / L.pxPerCard;
+    s.f.v = THREE.MathUtils.clamp(s.f.v + d, -0.3, this.carts.length - 0.7);
+    // Throw velocity in cards per second, from the events' own clock.
+    const dtS = s.scrub.t ? THREE.MathUtils.clamp((now - s.scrub.t) / 1000, 0.008, 0.12) : 0.016;
+    s.scrub.t = now;
+    s.scrub.vel = s.scrub.vel * 0.5 + (d / dtS) * 0.5;
+    // Whichever card is nearest the middle is the one in focus.
+    const near = THREE.MathUtils.clamp(Math.round(s.f.v), 0, this.carts.length - 1);
+    if (near !== s.focus) {
+      s.focus = near;
+      s.spin.a = 0;
+      s.spinState = "dwell";
+      s.spinT = 0;
+      this.sfx.tick();
+      this.slot.target.set(this.modules[near].color);
+      this.emitSel();
+    }
+  }
+
+  private endScrub(now: number) {
+    const s = this.sel;
+    s.scrub.on = false;
+    // Held still before letting go: no throw.
+    if (now - s.scrub.t > 80) s.scrub.vel = 0;
+    const target = THREE.MathUtils.clamp(Math.round(s.f.v + THREE.MathUtils.clamp(s.scrub.vel, -12, 12) * 0.11), 0, this.carts.length - 1);
+    s.scrub.vel = 0;
+    s.scrub.t = 0;
+    if (target !== s.focus) {
+      s.spin.a = 0;
+      s.spinState = "dwell";
+      s.spinT = 0;
+    }
+    s.focus = target;
+    gsap.killTweensOf(s.f);
+    gsap.to(s.f, { v: target, duration: 0.55, ease: "power3.out" });
+    this.slot.target.set(this.modules[target].color);
+    this.emitSel();
+  }
+
+  /** The turntable: face front for a while, then one slow turn. Reduced motion never turns. */
+  private updateSpin(dt: number) {
+    const s = this.sel;
+    if (s.state === "closed" || this.opts.reduced || s.spinState === "settle") return;
+    const holding = this.hovered === s.focus || (this.ptr.down && this.ptr.dragging) || s.state !== "open";
+    if (s.spinState === "dwell") {
+      s.spinT = holding ? 0 : s.spinT + dt;
+      if (s.spinT > SPIN.dwell) {
+        s.spinState = "turn";
+        s.spinT = 0;
+      }
+    } else {
+      s.spinT += dt;
+      const u = Math.min(1, s.spinT / SPIN.turn);
+      const e = u * u * (3 - 2 * u);
+      s.spin.a = Math.PI * 2 * e;
+      if (u >= 1) {
+        s.spin.a = 0;
+        s.spinState = "dwell";
+        s.spinT = 0;
+      }
+    }
   }
 
   // ── the reader's controls ─────────────────────────────────────────────────
@@ -801,20 +1187,19 @@ export class Stage {
     gsap.fromTo(this.fx, { [prop]: from }, { [prop]: 0, duration: dur, ease: easeName });
   }
 
-  /** A surge out along the conduits; cards hop as its front passes their pad. */
+  /** A surge out along the conduits; cards hop as its front passes their slot. */
   private surge(strength: number, hex: string, hop = 0) {
     const speed = 8;
     this.table.surge(this.time, strength, hex, speed);
     if (!hop || this.opts.reduced) return;
     this.carts.forEach((cs, i) => {
-      if (cs.mode !== "pad") return;
-      const s = this.table.pads[i].spot;
-      const delay = Math.hypot(s.x, s.z) / speed;
-      this.hopCard(cs, hop, delay);
+      if (cs.mode !== "case" || cs.sel.k > 0.01) return;
+      this.case.slot(i, this.tmp2);
+      this.hopCard(cs, hop, Math.hypot(this.tmp2.x, this.tmp2.z) / speed);
     });
   }
 
-  /** Bounce a card off its pad and back into it. */
+  /** Bounce a card up out of its slot and back into it. */
   private hopCard(cs: CartState, k: number, delay = 0) {
     const h = cs.hop;
     gsap.killTweensOf(h);
@@ -881,6 +1266,36 @@ export class Stage {
       cs.c.root.visible = false;
       cs.blob.visible = false;
     }
+  }
+
+  /**
+   * Draw one frame with EVERYTHING shown — hidden parts visible, and (if
+   * `lamps`) the selector's two lamps lit and its dimmer up — so every shader
+   * variant the session will need is compiled at load, behind the loading
+   * screen, and not the first frame of boot or the first time the case opens.
+   * (renderer.compile() does not produce the lamps-on variants.)
+   */
+  private warmUp(lamps: boolean) {
+    const hidden: THREE.Object3D[] = [];
+    this.scene.traverse((o) => {
+      if (!o.visible && o !== this.scrim) hidden.push(o);
+    });
+    hidden.forEach((o) => (o.visible = true));
+    // Nothing may be culled, or what is off-screen right now compiles later.
+    const culled: THREE.Object3D[] = [];
+    this.scene.traverse((o) => {
+      if (o.frustumCulled) {
+        culled.push(o);
+        o.frustumCulled = false;
+      }
+    });
+    this.selLight.visible = this.selRim.visible = lamps;
+    this.scrim.visible = lamps;
+    this.composer.render(0);
+    culled.forEach((o) => (o.frustumCulled = true));
+    this.scrim.visible = false;
+    this.selLight.visible = this.selRim.visible = false;
+    hidden.forEach((o) => (o.visible = false));
   }
 
   boot(onHud: () => void): Promise<void> {
@@ -988,7 +1403,7 @@ export class Stage {
         window.setTimeout(() => (rd.gauge.v.target = 0), 380);
       }, [], ign + 0.3);
 
-      // The cards are dealt: each drops into its pad and lands flat with a slap.
+      // The cards are dealt: each drops into its slot in the case with a slap.
       const cartsAt = ign + 0.5;
       this.carts.forEach((cs, i) => {
         const t = cartsAt + i * 0.1;
@@ -1004,7 +1419,7 @@ export class Stage {
           const p = this.cartScreen(cs);
           this.particles.sparks(p.x, p.y, { count: 10, colors: [cs.c.module.color, "#ffffff"], speed: 420, spread: 2.6, angle: -Math.PI / 2 });
           this.particles.debris(p.x, p.y, { count: 4, colors: ["#6b727c", "#e9e4d6"], speed: 260 });
-          setGlow(this.table.pads[i].light, cs.c.module.color, 0.6);
+          this.ledK[i] = 2.6;
         }, [], t + 0.38);
         tl.fromTo(cs.c.squash.scale, { x: 1.14, y: 1.14, z: 0.6 }, { x: 1, y: 1, z: 1, duration: 0.7, ease: "elastic.out(1.2, 0.35)", immediateRender: false }, t + 0.38);
       });
@@ -1026,76 +1441,91 @@ export class Stage {
       const m = cs.c.module;
       const { root, spin, squash } = cs.c;
       const rd = this.reader;
-      const pad = this.table.pads[i];
+      // From the fan the card is already in the air and in view; from the case
+      // (the module bay, a key) it has to be pulled out first.
+      const fromFan = this.sel.state !== "closed" && cs.sel.k > 0.35;
       this.setHover(null);
+      // Still on its way home from an eject? That flight ends here.
+      cs.flight?.kill();
+      cs.flight = null;
 
       // Reset the loops on this card to zero, now — not a frame later.
-      gsap.killTweensOf([cs.hover, cs.hop, cs.enter]);
+      gsap.killTweensOf([cs.hover, cs.hop, cs.enter, cs.sel]);
       cs.hover.v = 0;
       cs.hop.y = cs.hop.r = cs.hop.tilt = cs.enter.y = 0;
       spin.rotation.set(0, 0, 0);
       squash.rotation.set(0, 0, 0);
-      cs.mode = "flight";
-      root.rotation.order = "XYZ";
-
+      // Whatever pose the frame last gave it is where the flight starts.
       const P0 = root.position.clone();
       const q0 = root.quaternion.clone();
-      const toReader = new THREE.Vector3(-P0.x, 0, -P0.z).normalize();
-      const P1 = P0.clone().addScaledVector(toReader, 0.25).setY(REST_Y + 0.75);
-      // Lifted: top edge raised toward the lens, the way a hand picks a card up.
-      const q1 = q0.clone().multiply(new THREE.Quaternion().setFromAxisAngle(X_AXIS, 0.55));
-      const qUp = new THREE.Quaternion();
+      const s0 = root.scale.x;
+      cs.mode = "flight";
+      cs.sel.k = 0;
+      // The rest of the fan goes home while this one goes to the reader.
+      this.closeSelector(i);
+      this.slot.target.set(m.color);
+
       const PA = new THREE.Vector3(0, HOVER_Y, 0);
-      const c1 = P1.clone().setY(P1.y + 1.6).addScaledVector(toReader, 0.4);
+      const qUp = new THREE.Quaternion();
+      const P1 = fromFan ? P0.clone() : P0.clone().add(new THREE.Vector3(0, 1.5, 0));
+      const toA = PA.clone().sub(P1);
+      const c1 = P1.clone().addScaledVector(toA, 0.28).add(new THREE.Vector3(0, 1.2 + toA.length() * 0.05, 0));
       const c2 = new THREE.Vector3(0, HOVER_Y + 1.1, 0.9);
+      const flightT = 0.6 + Math.min(0.5, toA.length() * 0.028);
 
       const tl = gsap.timeline();
-      // 1 · press: the pad lets go, the card squashes into it.
+      // 1 · press: the card squashes as it is grabbed.
       tl.call(() => {
         this.sfx.latch();
-        setGlow(pad.light, m.color, 3);
-        this.slot.target.set(m.color);
       }, [], 0);
       tl.to(squash.scale, { x: 1.05, y: 1.05, z: 0.78, duration: 0.09, ease: "power2.out" }, 0);
       tl.call(() => {
         rd.gauge.v.target = 0.5;
       }, [], 0);
 
-      // 2 · lift, stretched along its thickness.
+      // 2 · lift: out of its slot, stretched along its thickness. (From the fan
+      //     there is nothing to lift out of.)
       const L = 0.09;
-      tl.to(root.position, { x: P1.x, y: P1.y, z: P1.z, duration: 0.24, ease: "power3.out" }, L);
-      tl.to(squash.scale, { x: 0.96, y: 0.96, z: 1.25, duration: 0.1, ease: "power2.out" }, L);
-      tl.to(squash.scale, { x: 1, y: 1, z: 1, duration: 0.4, ease: "elastic.out(1, 0.5)" }, L + 0.1);
-      const pl = { t: 0 };
-      tl.to(pl, { t: 1, duration: 0.24, ease: "power3.out", onUpdate: () => root.quaternion.slerpQuaternions(q0, q1, pl.t) }, L);
-      tl.call(() => {
-        const s = this.cartScreen(cs);
-        this.particles.sparks(s.x, s.y + 12, { count: 8, colors: [m.color, "#ffffff"], speed: 260, spread: 2.8, angle: -Math.PI / 2, gravity: 400 });
-      }, [], L);
+      let F = L + 0.06;
+      if (fromFan) {
+        tl.to(squash.scale, { x: 1, y: 1, z: 1, duration: 0.4, ease: "elastic.out(1, 0.5)" }, L);
+      } else {
+        tl.to(root.position, { x: P1.x, y: P1.y, z: P1.z, duration: 0.3, ease: "power3.out" }, L);
+        tl.to(squash.scale, { x: 0.96, y: 0.96, z: 1.25, duration: 0.1, ease: "power2.out" }, L);
+        tl.to(squash.scale, { x: 1, y: 1, z: 1, duration: 0.4, ease: "elastic.out(1, 0.5)" }, L + 0.1);
+        tl.call(() => {
+          const s = this.cartScreen(cs);
+          this.particles.sparks(s.x, s.y + 12, { count: 8, colors: [m.color, "#ffffff"], speed: 260, spread: 2.8, angle: -Math.PI / 2, gravity: 400 });
+        }, [], L);
+        F = L + 0.3;
+      }
 
-      // 3 · flight: a swooping curve to the slot, turning upright, with one
-      //     full turn on the way so the back label flashes past.
-      const F = L + 0.24;
+      // 3 · flight: a swooping curve to the slot, turning upright. Out of the
+      //     case it makes one full turn on the way so the back label flashes past.
       const p = { t: 0 };
       tl.call(() => this.sfx.whoosh(0.6, true), [], F);
+      tl.to(this.cam, { lift: 0.95, duration: flightT + 0.15, ease: "power2.inOut", overwrite: "auto" }, F);
       tl.to(p, {
         t: 1,
-        duration: 0.62,
+        duration: flightT,
         ease: "power2.inOut",
         onUpdate: () => {
           bez(P1, c1, c2, PA, p.t, root.position);
           const e = ease.p3io(p.t);
-          root.quaternion.slerpQuaternions(q1, qUp, e);
-          this.q.setFromAxisAngle(Y_AXIS, TAU * e);
-          root.quaternion.premultiply(this.q);
+          root.quaternion.slerpQuaternions(q0, qUp, e);
+          if (!fromFan) {
+            this.q.setFromAxisAngle(Y_AXIS, TAU * e);
+            root.quaternion.premultiply(this.q);
+          }
+          root.scale.setScalar(s0 + (1 - s0) * e);
         },
       }, F);
       tl.to(squash.scale, { x: 0.9, y: 1.16, z: 0.9, duration: 0.2, ease: "power3.out" }, F);
-      tl.to(squash.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "elastic.out(1, 0.5)" }, F + 0.34);
-      tl.call(() => setGlow(cs.c.ledMat, m.color, 1.2), [], F + 0.4);
+      tl.to(squash.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: "elastic.out(1, 0.5)" }, F + flightT * 0.55);
+      tl.call(() => setGlow(cs.c.ledMat, m.color, 1.2), [], F + flightT * 0.65);
 
       // 4 · align: it settles over the slot; the slot flares in its colour.
-      const A = F + 0.62;
+      const A = F + flightT;
       tl.call(() => {
         root.quaternion.identity();
         this.sfx.servo(0.25, true);
@@ -1189,7 +1619,7 @@ export class Stage {
     this.particles.ring(s.x, s.y + 6, { radius: this.screenRadius(1.1, SLOT_TOP), tilt: 0.3, color: m.color, life: 0.5, width: 5 });
   }
 
-  // ── eject: pop, hiss, fly home, land flat ─────────────────────────────────
+  // ── eject: pop, hiss, fly home, drop into the case ───────────────────────
 
   eject(): Promise<void> {
     return new Promise((resolve) => {
@@ -1198,21 +1628,22 @@ export class Stage {
       const i = this.seated;
       const cs = this.carts[i];
       const rd = this.reader;
-      const pad = this.table.pads[i];
       const { root, spin, squash } = cs.c;
       cs.mode = "flight";
-      root.rotation.order = "XYZ";
       rd.screen.set("eject");
       rd.gauge.v.target = 0;
       rd.drawSeg("-- -- --");
       setGlow(rd.eject.ringLight, "#ff3b2f", 0);
       this.closeUp(false);
+      gsap.to(this.cam, { lift: 0, duration: 0.9, ease: "power2.inOut", overwrite: "auto" });
 
       const tl = gsap.timeline({
         onComplete: () => {
-          cs.mode = "pad";
+          cs.mode = "case";
+          cs.flight = null;
         },
       });
+      cs.flight = tl;
       // Anticipation: the reader crouches before it spits the card out.
       tl.call(() => {
         this.sfx.servo(0.3, false);
@@ -1237,8 +1668,9 @@ export class Stage {
         this.particles.embers(s.x, s.y - 20, { count: 12, colors: ["#cfd8e0", "#ffffff"], radius: 50 });
       }, [], 0.13);
 
-      // Home: a live curve to its pad, turning from upright to lying flat.
+      // Home: a live curve to its slot in the case, coming down on it from above.
       const R = 0.5;
+      const homeT = 0.9;
       const p = { t: 0 };
       const from = new THREE.Vector3();
       const target = new THREE.Vector3();
@@ -1261,30 +1693,29 @@ export class Stage {
       }, [], R);
       tl.to(p, {
         t: 1,
-        duration: 0.78,
+        duration: homeT,
         ease: "power2.inOut",
         onUpdate: () => {
-          this.padPose(i, target, qTo);
-          c1.copy(from).setY(from.y + 1.1).setZ(from.z + 0.6);
-          c2.copy(target).setY(target.y + 1.4);
+          this.case.slot(i, target, qTo);
+          c1.copy(from).lerp(target, 0.2).setY(from.y + 0.9);
+          c2.copy(target).setY(target.y + 1.7);
           bez(from, c1, c2, target, p.t, root.position);
-          const e = ease.p2io(p.t);
-          root.quaternion.slerpQuaternions(qFrom, qTo, e);
+          root.quaternion.slerpQuaternions(qFrom, qTo, ease.p2io(p.t));
         },
       }, R);
       tl.to(squash.scale, { x: 0.94, y: 1.1, z: 0.94, duration: 0.25, ease: "power2.out" }, R);
       tl.to(squash.scale, { x: 1, y: 1, z: 1, duration: 0.3, ease: "power2.inOut" }, R + 0.4);
-      // Slap.
-      const H = R + 0.78;
+      // Drop into the rack.
+      const H = R + homeT;
       tl.call(() => {
         spin.rotation.set(0, 0, 0);
         this.sfx.clunk();
         this.sfx.tick();
         this.addTrauma(0.08);
-        setGlow(pad.light, cs.c.module.color, 0.6);
+        this.ledK[i] = 2.6;
         const s = this.cartScreen(cs);
-        this.particles.sparks(s.x, s.y, { count: 12, colors: [cs.c.module.color, "#ffffff"], speed: 380, spread: 2.8, angle: -Math.PI / 2 });
-        this.particles.debris(s.x, s.y, { count: 4, colors: ["#6b727c", "#e9e4d6"], speed: 240 });
+        this.particles.sparks(s.x, s.y + 30, { count: 12, colors: [cs.c.module.color, "#ffffff"], speed: 380, spread: 2.8, angle: -Math.PI / 2 });
+        this.particles.debris(s.x, s.y + 30, { count: 4, colors: ["#6b727c", "#e9e4d6"], speed: 240 });
       }, [], H);
       tl.fromTo(squash.scale, { x: 1.12, y: 1.12, z: 0.66 }, { x: 1, y: 1, z: 1, duration: 0.6, ease: "elastic.out(1.2, 0.35)", immediateRender: false }, H);
     });
@@ -1470,32 +1901,28 @@ export class Stage {
     this.dust.rotation.y = t * 0.008;
     this.dust.position.y = Math.sin(t * 0.2) * 0.15;
 
-    // Cards in their pads.
+    // The case: each slot's LED follows what its cartridge is doing (lit while
+    // the card is in the reader, out while it is out of the rack, a dim pilot
+    // otherwise), and the front lip breathes.
+    const open = this.sel.state !== "closed";
     for (let i = 0; i < this.carts.length; i++) {
       const cs = this.carts[i];
-      const { root, spin, squash } = cs.c;
-      if (cs.mode === "pad") {
-        const s = this.padPose(i, root.position);
-        const hv = cs.hover.v;
-        root.position.y += hv * 0.16 + cs.hop.y + cs.enter.y;
-        root.rotation.set(FLAT + hv * 0.16 + cs.hop.tilt, s.yaw + cs.hop.r, 0, "YXZ");
-        spin.rotation.x = 0;
-        squash.rotation.z = 0;
-        // The empty pad's status light breathes a little with the hover.
-        if (hv > 0.01) setGlow(this.table.pads[i].light, cs.c.module.color, 0.6 + hv * 1.6);
-      }
-      // Contact shadow: tight and dark on the pad, gone by the time it's in the air.
-      const b = cs.blob;
-      const y = root.position.y - REST_Y;
-      const lift = THREE.MathUtils.clamp(y / 1.4, 0, 1);
-      b.visible = root.visible && lift < 1 && cs.mode !== "seated";
-      if (b.visible) {
-        b.position.set(root.position.x, 0.018, root.position.z);
-        b.rotation.set(FLAT, cs.mode === "pad" ? this.table.pads[i].spot.yaw + cs.hop.r : root.rotation.y, 0);
-        b.material.opacity = 0.7 * (1 - lift) * (1 - lift);
-        b.scale.setScalar(1 + lift * 0.6);
-      }
+      const target =
+        cs.mode === "seated" ? 3.4 : cs.mode === "flight" ? 0.05 : cs.sel.k > 0.25 ? (i === this.sel.focus && this.sel.state === "open" ? 2.4 : 0.05) : 0.42 + this.caseHover.v * 0.55;
+      if (Math.abs(target - this.ledK[i]) < 0.004) continue;
+      this.ledK[i] += (target - this.ledK[i]) * Math.min(1, realDt * 10);
+      this.case.setLed(i, this.ledK[i]);
     }
+    setGlow(this.case.stripe, this.accentHex, (0.7 + 0.3 * Math.sin(t * 1.7)) * (1 + this.caseHover.v * 2.4) * Math.min(1, this.energy.base + 0.001) * (open ? 0.35 : 1));
+    this.updateSpin(dt);
+    // Left alone at the desk, the row nods once in a while: open me.
+    if (this.booted && !this.idle.opened && !this.opts.reduced && this.sel.state === "closed" && this.seated < 0 && !this.busy && this.hovered === null && !this.ptr.down) {
+      this.idle.t += dt;
+      if (this.idle.t > 8) {
+        this.idle.t = 0;
+        this.carts.forEach((cs, i) => cs.mode === "case" && this.hopCard(cs, 0.14, i * 0.05));
+      }
+    } else this.idle.t = 0;
 
     // Camera: wide ⟷ close-up, + look + parallax + shake + punch.
     const par = this.parallax;
@@ -1506,7 +1933,9 @@ export class Stage {
     const ce = cl * cl * (3 - 2 * cl);
     const W = this.wide;
     this.camTarget.lerpVectors(W.target, CLOSE_TARGET, ce);
-    const yaw = (this.cam.yaw + lk.yaw + Math.sin(t * 0.11) * 0.03) * (1 - ce) + par.x * 0.06;
+    // The wide shot tips up to follow a card to the slot; the close-up needs no help.
+    this.camTarget.y += this.cam.lift * (1 - ce);
+    const yaw = (W.yaw + this.cam.yaw + lk.yaw + Math.sin(t * 0.11) * 0.03) * (1 - ce) + par.x * 0.06;
     const pitch = THREE.MathUtils.lerp(W.pitch + this.cam.pitch, CLOSE_PITCH, ce) + Math.sin(t * 0.17) * 0.01 - par.y * 0.03;
     const wideD = W.dist * this.cam.dist;
     const d = wideD + (this.closeDist() - wideD) * ce;
@@ -1514,6 +1943,8 @@ export class Stage {
     const T = this.camTarget;
     cam.position.set(T.x + Math.sin(yaw) * Math.cos(pitch) * d, T.y + Math.sin(pitch) * d, T.z + Math.cos(yaw) * Math.cos(pitch) * d);
     cam.lookAt(T);
+    // The wide shot leans; the close-up is level.
+    cam.rotateZ(W.roll * (1 - ce));
     this.trauma = Math.max(0, this.trauma - realDt * 1.35);
     const shake = this.trauma * this.trauma * this.shakeScale;
     const sx = wob(t, 1.3) * shake;
@@ -1531,6 +1962,7 @@ export class Stage {
     const shY = W.shiftY * (1 - ce) + this.cam.shiftY * ce;
     if (shX || shY) cam.setViewOffset(this.w, this.h, shX, shY, this.w, this.h);
     cam.updateProjectionMatrix();
+    this.poseCards(t, realDt);
     this.scene.updateMatrixWorld();
 
     // Hover picking once per frame (fine pointers only; touch picks on down).
@@ -1560,14 +1992,114 @@ export class Stage {
     this.events.onFrame({ hover: this.hoverInfo(), core: this.coreScreen(), shake: { x: sx * 16, y: sy * 16, r: sr * 1.1 } });
   }
 
+  /**
+   * Put every card in the case where it belongs: in its slot, or — by `sel.k` —
+   * on its way to, or in, the fan in front of the lens. This runs AFTER the
+   * camera for the frame is final, because the fan is posed in camera space.
+   */
+  private poseCards(t: number, dt: number) {
+    const s = this.sel;
+    const L = s.L;
+    const cam = this.camera;
+    cam.updateMatrixWorld();
+    const me = cam.matrixWorld.elements;
+    this.camUp.set(me[4], me[5], me[6]);
+    const active = s.state !== "closed" && L;
+
+    // Pointer tilt for the card in the middle.
+    if (active) {
+      const off = this.ptr.ndc.x < -2 || this.opts.reduced;
+      const tx = off ? 0 : THREE.MathUtils.clamp(-this.ptr.ndc.y, -1, 1) * 0.1;
+      const ty = off ? 0 : THREE.MathUtils.clamp(this.ptr.ndc.x, -1, 1) * 0.18;
+      const k = Math.min(1, dt * 6);
+      s.tilt.x += (tx - s.tilt.x) * k;
+      s.tilt.y += (ty - s.tilt.y) * k;
+    }
+
+    for (let i = 0; i < this.carts.length; i++) {
+      const cs = this.carts[i];
+      const { root } = cs.c;
+      if (cs.mode === "case") {
+        this.case.slot(i, this.pA, this.qA);
+        this.pA.y += cs.hop.y + cs.enter.y + this.caseHover.v * 0.07;
+        if (cs.hop.tilt || cs.hop.r) this.qA.multiply(this.qT.setFromEuler(this.eT.set(cs.hop.tilt, cs.hop.r, 0, "YXZ")));
+        let scale = 1;
+        const k = cs.sel.k;
+        if (k > 0.0005 && L) {
+          const dx = i - s.f.v;
+          const P = selectorPose(dx, L, this.selPose);
+          const a = Math.min(1, Math.abs(dx));
+          const w = 1 - a * a * (3 - 2 * a);
+          const hv = cs.hover.v;
+          // Weightless: every card drifts a little, out of step with its neighbours.
+          const drift = this.opts.reduced ? 0 : Math.sin(t * 1.3 + i * 1.7) * 0.012 * L.D;
+          this.pB.set(P.x, P.y + drift, -L.D + P.z + hv * 0.4);
+          this.pB.applyMatrix4(cam.matrixWorld);
+          this.eT.set(s.tilt.x * w, P.yaw + s.spin.a * w + s.tilt.y * w, 0, "YXZ");
+          this.qB.copy(cam.quaternion).multiply(this.qT.setFromEuler(this.eT));
+          this.pA.lerp(this.pB, k).addScaledVector(this.camUp, Math.sin(Math.PI * k) * L.arc);
+          this.qA.slerp(this.qB, k);
+          scale = 1 + (P.scale * (1 + hv * 0.06) - 1) * k;
+        }
+        root.position.copy(this.pA);
+        root.quaternion.copy(this.qA);
+        root.scale.setScalar(scale);
+      }
+      // Contact shadow: only while a card is loose over the desk.
+      const b = cs.blob;
+      b.visible = root.visible && cs.mode === "flight";
+      if (b.visible) {
+        const lift = THREE.MathUtils.clamp(root.position.y / 1.4, 0, 1);
+        b.position.set(root.position.x, 0.018, root.position.z);
+        b.rotation.set(FLAT, root.rotation.y, 0);
+        b.material.opacity = 0.7 * (1 - lift) * (1 - lift);
+        b.scale.setScalar(1 + lift * 0.6);
+      }
+    }
+
+    // The dimmer sits just behind the deepest card; the lamp is in front and above.
+    const sc = this.scrim;
+    const o = s.scrim.o;
+    sc.visible = o > 0.002;
+    if (sc.visible && L) {
+      sc.material.opacity = o;
+      const Ds = L.D + 1.6;
+      const tan = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+      sc.position.set(0, 0, -Ds).applyMatrix4(cam.matrixWorld);
+      sc.quaternion.copy(cam.quaternion);
+      sc.scale.set(2 * Ds * tan * cam.aspect * 1.7, 2 * Ds * tan * 1.7, 1);
+    }
+    const lk = s.light.k;
+    this.selLight.visible = this.selRim.visible = lk > 0.001;
+    // The desk lamp hangs almost at the lens, so a card held up in front of it is
+    // lit four times as hard as the desk is. While the fan is out the desk is
+    // behind glass anyway: turn the lamp down and light the cards with their own.
+    if (this.booted) this.key.intensity = this.keyIntensity * (1 - 0.94 * lk);
+    this.selLight.intensity = SEL_LIGHT * lk * (L ? (L.D * L.D) / 24 : 1);
+    this.selRim.intensity = SEL_RIM * lk * (L ? (L.D * L.D) / 24 : 1);
+    if (L && lk > 0.001) {
+      this.selLight.position.set(-L.D * 0.5, L.D * 0.62, -L.D * 0.45).applyMatrix4(cam.matrixWorld);
+      // Behind the fan and a little above: it lights edges, not faces.
+      this.selRim.position.set(L.D * 0.25, L.D * 0.32, -L.D - 1.5).applyMatrix4(cam.matrixWorld);
+      this.selRim.distance = L.D * 3.2;
+      this.rimColor.lerp(this.tmpColor.set(this.modules[s.focus].color), Math.min(1, dt * 6));
+      this.selRim.color.copy(this.rimColor);
+    }
+  }
+
   private hoverInfo(): FrameInfo["hover"] {
     const h = this.hovered;
     const rd = this.reader;
     if (h === null || h === "core") return null;
+    if (h === "case") {
+      const hh = this.case.hitHalf;
+      return { id: h, label: `CARTRIDGE CASE — OPEN ▸ ${String(this.carts.length).padStart(2, "0")} MODULES`, color: IDLE_ACCENT, rect: this.rectOf(this.case.hit.matrixWorld, hh.x, hh.y, hh.z) };
+    }
     if (typeof h === "number") {
       const cs = this.carts[h];
       const m = cs.c.module;
-      return { id: `m${h}`, label: `TARGET LOCK — ${m.n} ${m.code}`, color: m.color, rect: this.rectOf(cs.c.squash.matrixWorld, CART.w / 2, CART.h / 2, CART.d / 2) };
+      const verb = h === this.sel.focus ? "INSERT" : "BROWSE";
+      return { id: `m${h}`, label: `${verb} ▸ ${m.n} ${m.code}`, color: m.color, rect: this.rectOf(cs.c.squash.matrixWorld, CART.w / 2, CART.h / 2, CART.d / 2) };
     }
     if (h === "eject") return { id: h, label: this.seated >= 0 ? "EJECT ⏏ — RELEASE MODULE" : "EJECT ⏏ — BAY EMPTY", color: "#ff3b2f", rect: this.hitRect(rd.eject.hit) };
     if (h === "charge") return { id: h, label: "HOLD — OVERCHARGE", color: "#f2913d", rect: this.hitRect(rd.charge.hit) };
@@ -1578,12 +2110,13 @@ export class Stage {
 
   dispose() {
     this.disposed = true;
+    this.sel.tl?.kill();
     gsap.ticker.remove(this.tick);
     gsap.globalTimeline.timeScale(1);
     this.ro?.disconnect();
     window.removeEventListener("pointermove", this.onMove);
     window.removeEventListener("pointerup", this.onUp);
-    window.removeEventListener("pointercancel", this.onUp);
+    window.removeEventListener("pointercancel", this.onCancel);
     window.clearTimeout(this.deniedTimer);
     this.sfx.chargeStop();
     this.scene.traverse((o) => {
