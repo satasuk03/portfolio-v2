@@ -87,16 +87,37 @@ export class Sfx {
     this.startAmbient();
     this.startMusic();
 
-    document.addEventListener("visibilitychange", () => {
-      if (!this.ctx) return;
-      if (document.hidden) {
-        void this.ctx.suspend();
-        this.music?.pause();
-      } else {
-        void this.ctx.resume();
-        this.syncMusic();
-      }
-    });
+    document.addEventListener("visibilitychange", this.onVisibility);
+  }
+
+  private onVisibility = () => {
+    if (!this.ctx || this.dead) return;
+    if (document.hidden) {
+      void this.ctx.suspend();
+      this.music?.pause();
+    } else {
+      void this.ctx.resume();
+      this.syncMusic();
+    }
+  };
+
+  private dead = false;
+
+  /**
+   * Leave the route: stop the music bed and the ambient, drop the listener and
+   * close the context. Nothing of this edition may still be sounding on the next.
+   */
+  dispose() {
+    this.dead = true;
+    document.removeEventListener("visibilitychange", this.onVisibility);
+    this.chargeStop();
+    this.musicWanted = false;
+    if (this.music) {
+      this.music.pause();
+      this.music.removeAttribute("src");
+      this.music.load();
+    }
+    if (this.ctx && this.ctx.state !== "closed") void this.ctx.close().catch(() => {});
   }
 
   setMuted(m: boolean) {
@@ -348,7 +369,7 @@ export class Sfx {
   /** Keep the element playing only while it can be heard. */
   private syncMusic() {
     const el = this.music;
-    if (!el) return;
+    if (!el || this.dead) return;
     if (this.musicWanted && !this.muted && !document.hidden) void el.play().catch(() => {});
     else el.pause();
   }

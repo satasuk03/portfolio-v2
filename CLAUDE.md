@@ -172,6 +172,11 @@ Each is commented in place; the comment is the full rationale.
   variants, so opening the case does not hitch.
 - **The wide camera's lean and the fan's camera-space poses are not bugs to level.** The roll is
   `camRoll` in `layout.ts`; the fan is posed with the camera's own quaternion so it always reads upright.
+- **`play.css` stays loaded after you leave `/play`** (Next keeps route CSS across client-side navigation,
+  including the browser's Back), so any rule whose class also exists in `globals.css` — `.bay`, `.hud-btn`,
+  `.hud-dim`, `.eq`, … — is scoped as `:where(.play-root) .x`: no added specificity, no leak onto `/`. A new
+  play class that shares a name with a home class needs the same prefix. `Sfx.dispose()` and `Stage.dispose()`
+  run on unmount; the music bed and the AudioContext must not outlive the route.
 - **`play.css` resets `.play-root .bay`.** `globals.css` owns a `.bay` (the home section wrapper, with a
   deep top padding); without the reset it is an invisible box over the desk that eats the front cards' hover.
 

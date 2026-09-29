@@ -345,6 +345,8 @@ export function PlayExperience() {
       progTween.kill();
       stage.current?.dispose();
       stage.current = null;
+      sfx.current?.dispose();
+      sfx.current = null;
       html.classList.remove("play-lock");
     };
   }, [select, openCase, onCharge, onDischarge, onFrame]);
