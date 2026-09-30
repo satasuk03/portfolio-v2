@@ -25,12 +25,12 @@ export type Project = {
  */
 /*
  * Array order is render order: `featured` is filtered, never sorted, so the
- * five cards appear in the order Ze picked them.
+ * six cards appear in the order Ze picked them.
  *
  * The five without `featured` render NOWHERE — the "Also public: …" overflow
- * paragraph was cut on 2026-07-28, so § 05 is the five cards and nothing else.
+ * paragraph was cut on 2026-07-28, so § 05 is the six cards and nothing else.
  * They are kept as the bench: promote one by adding `featured: true`, and drop
- * another, or the two-column grid gains a third orphan row.
+ * another, or the six-card rhythm in globals.css (4/2, 2/4, 3/3) gains an orphan row.
  */
 export const projects: Project[] = [
   {
@@ -44,6 +44,20 @@ export const projects: Project[] = [
     href: "https://github.com/satasuk03/florify",
     live: "https://florify.zeze.app/",
     liveLabel: "florify.zeze.app ↗",
+    thread: "craft",
+  },
+  {
+    name: "hanzi-rush",
+    nativeName: "汉字",
+    year: "2026",
+    featured: true,
+    pitch: "Chinese vocabulary games with an arcade's sense of juice.",
+    detail:
+      "HSK 1–6 in Thai and English: a timed meaning quiz whose combo builds heat, music layers and a FEVER mode, plus a gacha vault for collecting word cards. No framework and no audio files. GSAP drives the motion, cards flip in WebGL, and the music and sound effects are synthesised in Web Audio.",
+    stack: ["Vite", "TypeScript", "GSAP", "WebGL", "Web Audio"],
+    href: "https://github.com/satasuk03/hanzi-rush",
+    live: "https://hanzi-rush.zeze.app/",
+    liveLabel: "hanzi-rush.zeze.app ↗",
     thread: "craft",
   },
   {

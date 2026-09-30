@@ -1906,10 +1906,19 @@
   margin-top: auto;
   padding-top: 22px;
 }
+/* Six cards: 4/2, 2/4, 3/3 — a rhythm rather than a grid of equals, and no orphan row. */
+@media (min-width: 64rem) {
+  .op:nth-child(1),
+  .op:nth-child(4) { grid-column: span 4; }
+  .op:nth-child(2),
+  .op:nth-child(3) { grid-column: span 2; }
+  .op:nth-child(5),
+  .op:nth-child(6) { grid-column: span 3; }
+}
 @media (max-width: 63.99rem) {
   .op,
   .op-wide { grid-column: span 3; }
-  .op:last-child { grid-column: 1 / -1; }
+  .op:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 @media (max-width: 47.99rem) {
   .op,
