@@ -318,6 +318,12 @@ export function SideOps() {
           data-lock={`FIG 05.${i + 1} · ${project.name.toUpperCase()}`}
           data-color={s.color}
         >
+          {project.cover && (
+            <div className="op-cover">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={project.cover} alt={project.coverAlt ?? ""} width={1600} height={1000} loading="lazy" decoding="async" />
+            </div>
+          )}
           <div className="card-head">
             <span className={`tag ${project.thread === "tooling" ? "tag-yellow" : "tag-outline"}`}>{THREAD_LABEL[project.thread]}</span>
             <span className="hud-label hud-dim ml-auto">{project.year}</span>

@@ -16,6 +16,10 @@ export type Project = {
   liveLabel?: string;
   /** Two threads: agent tooling, and craft apps. */
   thread: "tooling" | "craft";
+  /** 1600×1000 (16:10) promo shot under /public. Omit and the card has no image slot. */
+  cover?: string;
+  /** Required whenever `cover` is set. */
+  coverAlt?: string;
 };
 
 /**
@@ -45,6 +49,8 @@ export const projects: Project[] = [
     live: "https://florify.zeze.app/",
     liveLabel: "florify.zeze.app ↗",
     thread: "craft",
+    cover: "/images/projects/florify.webp",
+    coverAlt: "Florify on three phones: the species collection, a red trumpet-flower plant ready to water, and a Thai and English lore page.",
   },
   {
     name: "hanzi-rush",
@@ -59,6 +65,8 @@ export const projects: Project[] = [
     live: "https://hanzi-rush.zeze.app/",
     liveLabel: "hanzi-rush.zeze.app ↗",
     thread: "craft",
+    cover: "/images/projects/hanzi-rush.webp",
+    coverAlt: "Hanzi Rush promo art.",
   },
   {
     name: "wenfang-chinese-toolbox",
