@@ -192,6 +192,8 @@ export type WorkProject = {
   cover?: string;
   /** Required whenever `cover` is set — these carry logos, so not decorative. */
   coverAlt?: string;
+  /** Looping muted clip under /public that plays over `cover` (the poster, and the no-video fallback). */
+  coverVideo?: string;
   /** Wave-still seed — each card gets its own slice of the field. */
   seed: number;
 };
@@ -217,6 +219,7 @@ export const workProjects: WorkProject[] = [
     foot: "Private · ask me",
     cover: "/images/covers/zentry-data.webp",
     coverAlt: "Zentry Terminal key art — an iridescent sphere beside the wordmark.",
+    coverVideo: "/videos/zentry-data.webm",
     seed: 311,
   },
   {

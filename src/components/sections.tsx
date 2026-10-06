@@ -14,6 +14,7 @@
  * numbers are stable identifiers: prose and interview notes point at them.
  */
 
+import { CoverVideo } from "@/components/cover-video";
 import { Arrow, Barcode, Redacted, StackRow, Tag, spotStyle } from "@/components/hud";
 import { education } from "@/content/education";
 import { companies } from "@/content/experience";
@@ -238,8 +239,12 @@ export function Deployments() {
               covers decode. */}
           <div className="work-cover">
             {project.cover ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={project.cover} alt={project.coverAlt ?? ""} loading="lazy" decoding="async" />
+              project.coverVideo ? (
+                <CoverVideo src={project.coverVideo} poster={project.cover} alt={project.coverAlt} label={project.name} />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={project.cover} alt={project.coverAlt ?? ""} loading="lazy" decoding="async" />
+              )
             ) : (
               <span aria-hidden className="work-cover-blank" />
             )}
